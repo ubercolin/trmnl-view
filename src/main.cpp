@@ -66,6 +66,9 @@ void setup()
 
         display.updateClock(timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec, dayOfWeek, String(dateStr));
 
+        // Read battery (before WiFi uses power)
+        float batteryPercent = network.readDeviceBattery();
+
         // Fetch initial weather
         Serial.println("Fetching initial weather...");
         WeatherData weather = {};
@@ -78,6 +81,9 @@ void setup()
         {
             Serial.println("Weather fetch failed!");
         }
+
+        // Display battery on clock
+        display.updateBattery(batteryPercent);
     }
     else
     {
@@ -119,6 +125,10 @@ void loop()
         {
             Serial.println("Weather updated!");
             display.updateWeather(weather);
+            
+            // Update battery display along with weather
+            float batteryPercent = network.readDeviceBattery();
+            display.updateBattery(batteryPercent);
         }
         else
         {

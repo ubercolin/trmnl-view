@@ -16,12 +16,14 @@ public:
     void showError(const String &errorMessage);
     void updateClock(int hour, int minute, int second, const String &dayOfWeek, const String &date);
     void updateWeather(const WeatherData &weather);
+    void updateBattery(float batteryPercent);
     void partialUpdateClock(int hour, int minute, int second);
     void deepSleep();
     void wakeup();
 
 private:
     GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> display;
+    float currentBattery = 0;
 
     void drawClockSection(int hour, int minute, int second, const String &dayOfWeek, const String &date);
     void drawWeatherSection(const WeatherData &weather);

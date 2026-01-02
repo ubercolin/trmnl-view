@@ -260,6 +260,11 @@ bool NetworkManager::parseWeatherJson(const String &jsonResponse, WeatherData &w
         }
 
         Serial.println("Weather data parsed successfully!");
+
+        // Timestamp the weather data with current time
+        time(&now);
+        weatherData.lastUpdated = now;
+
         return true;
     }
     catch (const std::exception &e)
@@ -297,4 +302,24 @@ String NetworkManager::getWeatherCondition(int wmoCode)
     if (wmoCode >= 90 && wmoCode <= 99)
         return "Thunder";
     return "Unknown";
+}
+
+float NetworkManager::readDeviceBattery()
+{
+    // Take 8 samples and average
+    int32_t adc = 0;
+    analogRead(PIN_BATTERY); // Initialize ADC
+    for (int i = 0; i < 8; i++)
+    {
+        adc += analogReadMilliVolts(PIN_BATTERY);
+    }
+    // Voltage divider: multiply by 2, convert mV to V
+    float voltage = (adc / 8.0f) * 2.0f / 1000.0f;
+
+    // Convert to percentage (3.0V = 0%, 4.2V = 100%)
+    float percent = (voltage - 3.0) / (4.2 - 3.0) * 100.0;
+    percent = constrain(percent, 0, 100);
+
+    Serial.printf("Device battery: %.2fV (%.0f%%)\n", voltage, percent);
+    return percent;
 }

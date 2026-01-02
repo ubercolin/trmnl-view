@@ -26,13 +26,14 @@
 
 // Pin configuration (Waveshare e-ink for ESP32-C3)
 // Match TRMNL OG hardware
-#define PIN_CLK 7  // EPD_SCK
-#define PIN_MOSI 8 // EPD_MOSI
-#define PIN_MISO 9 // Not used by e-ink but needed for SPI init
-#define PIN_CS 6   // EPD_CS
-#define PIN_DC 5   // EPD_DC
-#define PIN_RST 10 // EPD_RST
-#define PIN_BUSY 4 // EPD_BUSY
+#define PIN_CLK 7     // EPD_SCK
+#define PIN_MOSI 8    // EPD_MOSI
+#define PIN_MISO 9    // Not used by e-ink but needed for SPI init
+#define PIN_CS 6      // EPD_CS
+#define PIN_DC 5      // EPD_DC
+#define PIN_RST 10    // EPD_RST
+#define PIN_BUSY 4    // EPD_BUSY
+#define PIN_BATTERY 3 // Battery ADC pin
 
 // OTA Configuration
 #define OTA_ENABLED 1

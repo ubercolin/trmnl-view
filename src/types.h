@@ -9,6 +9,7 @@ struct WeatherData
     String currentCondition;
     int humidity;
     int windSpeed;
+    time_t lastUpdated; // Timestamp of last weather fetch
 
     // Hourly forecast (next 6 hours)
     struct HourlyForecast

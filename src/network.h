@@ -19,6 +19,9 @@ public:
     // Weather API
     bool fetchWeather(WeatherData &weatherData);
 
+    // Battery reading
+    float readDeviceBattery();
+
 private:
     bool parseWeatherJson(const String &jsonResponse, WeatherData &weatherData);
     String getWeatherCondition(int wmoCode);

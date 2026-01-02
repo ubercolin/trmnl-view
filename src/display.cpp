@@ -1,6 +1,7 @@
 #include "display.h"
 #include "config.h"
 #include <SPI.h>
+#include <time.h>
 
 DisplayManager::DisplayManager() : display(GxEPD2_750_T7(PIN_CS, PIN_DC, PIN_RST, PIN_BUSY))
 {
@@ -190,6 +191,23 @@ void DisplayManager::drawWeatherSection(const WeatherData &weather)
         display.setCursor(boxX, startY + 270);
         display.print(tempStr);
     }
+
+    // Last updated timestamp at bottom right
+    if (weather.lastUpdated > 0)
+    {
+        time_t updateTime = weather.lastUpdated;
+        struct tm timeinfo;
+        localtime_r(&updateTime, &timeinfo);
+        
+        display.setTextSize(0);  // Small default font
+        
+        char timeStr[20];
+        strftime(timeStr, sizeof(timeStr), "%b %d %H:%M", &timeinfo);
+        
+        int textWidth = 100;  // Shifted left to show full string
+        display.setCursor(DISPLAY_LEFT_HALF + DISPLAY_RIGHT_HALF - textWidth, DISPLAY_HEIGHT - 20);
+        display.print(timeStr);
+    }
 }
 
 void DisplayManager::drawForecastRow(int y, const WeatherData &weather, bool isHourly)
@@ -224,4 +242,25 @@ void DisplayManager::wakeup()
 {
     // Resume from deep sleep
     display.init(115200);
+}
+
+void DisplayManager::updateBattery(float batteryPercent)
+{
+    currentBattery = batteryPercent;
+    
+    // Update only battery area on left panel (lower left corner)
+    display.setPartialWindow(0, 400, 200, 80);
+    display.firstPage();
+    do
+    {
+        display.fillRect(0, 400, 200, 80, GxEPD_WHITE);
+        
+        display.setTextColor(GxEPD_BLACK);
+        display.setTextSize(0);  // Small default font
+        
+        char battStr[20];
+        sprintf(battStr, "Battery: %.0f%%", batteryPercent);
+        display.setCursor(10, DISPLAY_HEIGHT - 20);
+        display.println(battStr);
+    } while (display.nextPage());
 }
