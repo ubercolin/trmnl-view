@@ -199,7 +199,8 @@ void DisplayManager::drawWeatherSection(const WeatherData &weather)
         struct tm timeinfo;
         localtime_r(&updateTime, &timeinfo);
 
-        display.setTextSize(0); // Small default font
+        display.setFont(&FreeSans9pt7b);
+        display.setTextSize(1);
 
         char timeStr[20];
         strftime(timeStr, sizeof(timeStr), "%b %d %H:%M", &timeinfo);
@@ -255,8 +256,9 @@ void DisplayManager::updateBattery(float batteryPercent)
     {
         display.fillRect(0, 400, 200, 80, GxEPD_WHITE);
 
+        display.setFont(&FreeSans9pt7b);
         display.setTextColor(GxEPD_BLACK);
-        display.setTextSize(0); // Small default font
+        display.setTextSize(1);
 
         char battStr[20];
         sprintf(battStr, "Battery: %.0f%%", batteryPercent);
