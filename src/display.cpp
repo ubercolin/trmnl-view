@@ -22,22 +22,6 @@ void DisplayManager::init()
     display.display(true);
 }
 
-void DisplayManager::showIPAddress(const String &ipAddress)
-{
-    display.fillScreen(GxEPD_WHITE);
-    display.setFont(&FreeMonoBold12pt7b);
-    display.setTextColor(GxEPD_BLACK);
-
-    display.setCursor(50, 150);
-    display.println("WiFi Connected!");
-
-    display.setCursor(50, 250);
-    display.print("IP: ");
-    display.println(ipAddress);
-
-    display.display(true);
-}
-
 void DisplayManager::showError(const String &errorMessage)
 {
     display.fillScreen(GxEPD_WHITE);
@@ -120,11 +104,11 @@ void DisplayManager::drawClockSection(int hour, int minute, int second, const St
     display.setTextSize(1); // Reset to normal
 
     // Day of week and date below time
-    display.setFont(&FreeSans12pt7b);
-    display.setCursor(50, 330);
+    // display.setFont(&FreeSans24pt7b);
+    display.setCursor(30, 250);
     display.println(dayOfWeek);
 
-    display.setCursor(50, 370);
+    display.setCursor(30, 300);
     display.println(date);
 }
 

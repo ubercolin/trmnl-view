@@ -13,7 +13,6 @@ class DisplayManager
 public:
     DisplayManager();
     void init();
-    void showIPAddress(const String &ipAddress);
     void showError(const String &errorMessage);
     void updateClock(int hour, int minute, int second, const String &dayOfWeek, const String &date);
     void updateWeather(const WeatherData &weather);
