@@ -125,7 +125,7 @@ void loop()
         {
             Serial.println("Weather updated!");
             display.updateWeather(weather);
-            
+
             // Update battery display along with weather
             float batteryPercent = network.readDeviceBattery();
             display.updateBattery(batteryPercent);
