@@ -58,11 +58,12 @@ void DisplayManager::partialUpdateClock(int hour, int minute, int second)
     }
 
     // Update only the time area (partial refresh for efficiency)
-    display.setPartialWindow(0, 80, DISPLAY_LEFT_HALF, 230);
+    // Window from y=80 to y=230 covers just the time, not day/date below
+    display.setPartialWindow(0, 80, DISPLAY_LEFT_HALF, 150);
     display.firstPage();
     do
     {
-        display.fillRect(0, 80, DISPLAY_LEFT_HALF, 230, GxEPD_WHITE);
+        display.fillRect(0, 80, DISPLAY_LEFT_HALF, 150, GxEPD_WHITE);
 
         display.setFont(&FreeMonoBold24pt7b);
         display.setTextColor(GxEPD_BLACK);
