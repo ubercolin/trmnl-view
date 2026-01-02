@@ -104,7 +104,7 @@ pio device monitor
 
 ### Display Library
 
-Uses `bb_epaper` (via GxEPD2) for efficient rendering:
+Uses [GxEPD2](https://github.com/ZinggJM/GxEPD2) for efficient e-ink rendering:
 
 - Supports partial screen updates
 - No full-screen flashes during time updates
