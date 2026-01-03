@@ -200,7 +200,7 @@ bool NetworkManager::parseWeatherJson(const String &jsonResponse, WeatherData &w
         int currentHour = timeinfo.tm_hour;
 
         // Find the first hourly entry that matches or exceeds current hour
-        int startIndex = currentHour;
+        int startIndex = currentHour + 1; // Start from next hour
         if (startIndex >= hourlyTemps.size())
             startIndex = 0;
 
