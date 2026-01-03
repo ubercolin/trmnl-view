@@ -59,11 +59,11 @@ void DisplayManager::partialUpdateClock(int hour, int minute, int second)
 
     // Update only the time area (partial refresh for efficiency)
     // Window from y=80 to y=230 covers just the time, not day/date below
-    display.setPartialWindow(0, 80, DISPLAY_LEFT_HALF, 150);
+    display.setPartialWindow(0, 80, DISPLAY_LEFT_HALF, 140);
     display.firstPage();
     do
     {
-        display.fillRect(0, 80, DISPLAY_LEFT_HALF, 150, GxEPD_WHITE);
+        display.fillRect(0, 80, DISPLAY_LEFT_HALF, 140, GxEPD_WHITE);
 
         display.setFont(&FreeMonoBold24pt7b);
         display.setTextColor(GxEPD_BLACK);
@@ -141,18 +141,14 @@ void DisplayManager::drawWeatherSection(const WeatherData &weather)
         int hour = weather.hourly[i].hour;
         int displayHour = (hour % 12 == 0) ? 12 : (hour % 12);
         const char *ampm = (hour < 12) ? "a" : "p";
+        int colX = startX + (i * colWidth);
         sprintf(timeStr, "%d%s", displayHour, ampm);
-        display.setCursor(startX + (i * colWidth), startY + 140);
+        display.setCursor(colX, startY + 140);
         display.print(timeStr);
-    }
 
-    // Temperature row
-    display.setCursor(startX, startY + 170);
-    for (int i = 0; i < 6; i++)
-    {
         char tempStr[8];
         sprintf(tempStr, "%.0f°", weather.hourly[i].temp);
-        display.setCursor(startX + (i * colWidth), startY + 170);
+        display.setCursor(colX, startY + 170);
         display.print(tempStr);
     }
 
