@@ -5,6 +5,11 @@
 #include "weather_bitmaps.h"
 #include <time.h>
 
+const int HOURLY_START_Y = 170;
+const int DAILY_START_Y = 290;
+const int ICON_HEIGHT = 50;
+const int TEXT_HEIGHT = 20;
+
 DisplayWeather::DisplayWeather(DisplayManager *displayManager) : displayManager(displayManager)
 {
 }
@@ -26,8 +31,8 @@ void DisplayWeather::draw(int startX, int boxWidth, const WeatherData &weather)
     int startY = 30;
 
     drawCurrentTemperature(startX, boxWidth, startY, weather.currentTemp);
-    drawHourly(startX, boxWidth, startY + 140, weather);
-    drawDaily(startX, boxWidth, startY + 250, weather);
+    drawHourly(startX, boxWidth, HOURLY_START_Y, weather);
+    drawDaily(startX, boxWidth, DAILY_START_Y, weather);
 
     // Last updated timestamp at bottom right
     if (weather.lastUpdated > 0)
@@ -87,14 +92,14 @@ void DisplayWeather::drawHourly(int startX, int boxWidth, int startY, const Weat
         int centerX = colX + (colWidth / 2);
 
         sprintf(timeStr, "%d%s", displayHour, ampm);
-        displayManager->drawCenteredText(timeStr, centerX, startY + 20);
+        displayManager->drawCenteredText(timeStr, centerX, startY + TEXT_HEIGHT);
 
         // Draw weather icon
-        drawWeatherIcon(centerX, startY + 50, weather.hourly[i].condition);
+        drawWeatherIcon(centerX, startY + ICON_HEIGHT, weather.hourly[i].condition);
 
         char tempStr[8];
         sprintf(tempStr, "%.0f°", weather.hourly[i].temp);
-        displayManager->drawCenteredText(tempStr, centerX, startY + 90);
+        displayManager->drawCenteredText(tempStr, centerX, startY + ICON_HEIGHT + (TEXT_HEIGHT * 2));
     }
 }
 
@@ -111,15 +116,15 @@ void DisplayWeather::drawDaily(int startX, int boxWidth, int startY, const Weath
         int centerX = boxX + (dayColWidth / 2);
 
         // Day of week
-        displayManager->drawCenteredText(weather.daily[i].day.c_str(), centerX, startY + 20);
+        displayManager->drawCenteredText(weather.daily[i].day.c_str(), centerX, startY + TEXT_HEIGHT);
 
         // Draw weather icon
-        drawWeatherIcon(centerX, startY + 50, weather.daily[i].condition);
+        drawWeatherIcon(centerX, startY + ICON_HEIGHT, weather.daily[i].condition);
 
         // High / Low temps
         char tempStr[20];
         sprintf(tempStr, "%.0f/%.0f°", weather.daily[i].tempHigh, weather.daily[i].tempLow);
-        displayManager->drawCenteredText(tempStr, centerX, startY + 90);
+        displayManager->drawCenteredText(tempStr, centerX, startY + ICON_HEIGHT + (TEXT_HEIGHT * 2));
     }
 }
 
