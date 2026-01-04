@@ -115,7 +115,7 @@ void DisplayManager::drawClockSection(int hour, int minute, int second, const St
 
 void DisplayManager::drawWeatherSection(const WeatherData &weather)
 {
-    int startX = DISPLAY_LEFT_HALF + 20;
+    int startX = DISPLAY_LEFT_HALF;
     int startY = 30;
 
     // Large current temperature (2x size, centered, no F unit)
@@ -132,10 +132,10 @@ void DisplayManager::drawWeatherSection(const WeatherData &weather)
     display.setFont(&FreeSans12pt7b);
     display.setTextSize(1);
 
-    // Hourly forecast (next 6 hours) - time row
+    // Hourly forecast (next 5 hours) - time row
     display.setCursor(startX, startY + 140);
-    int colWidth = 60;
-    for (int i = 0; i < 6; i++)
+    int colWidth = 80;
+    for (int i = 0; i < 5; i++)
     {
         char timeStr[8];
         int hour = weather.hourly[i].hour;
@@ -143,15 +143,15 @@ void DisplayManager::drawWeatherSection(const WeatherData &weather)
         const char *ampm = (hour < 12) ? "a" : "p";
         int colX = startX + (i * colWidth);
         sprintf(timeStr, "%d%s", displayHour, ampm);
-        display.setCursor(colX, startY + 200);
+        display.setCursor(colX + 25, startY + 200);
         display.print(timeStr);
 
         // Draw weather icon instead of text
-        drawWeatherIcon(colX + 20, startY + 220, weather.hourly[i].condition);
+        drawWeatherIcon(colX + (colWidth / 2), startY + 220, weather.hourly[i].condition);
 
         char tempStr[8];
         sprintf(tempStr, "%.0f°", weather.hourly[i].temp);
-        display.setCursor(colX, startY + 260);
+        display.setCursor(colX + 25, startY + 260);
         display.print(tempStr);
     }
 
@@ -162,16 +162,16 @@ void DisplayManager::drawWeatherSection(const WeatherData &weather)
         int boxX = startX + (i * dayColWidth);
 
         // Day of week
-        display.setCursor(boxX, startY + 310);
+        display.setCursor(boxX + 35, startY + 310);
         display.print(weather.daily[i].day.c_str());
 
         // Draw weather icon instead of condition text
-        drawWeatherIcon(boxX + 40, startY + 330, weather.daily[i].condition);
+        drawWeatherIcon(boxX + (dayColWidth / 2), startY + 330, weather.daily[i].condition);
 
         // High / Low temps
         char tempStr[20];
         sprintf(tempStr, "%.0f/%.0f°", weather.daily[i].tempHigh, weather.daily[i].tempLow);
-        display.setCursor(boxX, startY + 370);
+        display.setCursor(boxX + 20, startY + 370);
         display.print(tempStr);
     }
 
@@ -270,7 +270,7 @@ void DisplayManager::drawBitmapIcon(int x, int y, const unsigned char *bitmap, i
             {
                 if ((b & (0x80 >> bit)) != 0) // Black pixel
                 {
-                    int pixel_x = x - offset_x + col * 8 + bit;
+                    int pixel_x = x - offset_x + 1 + col * 8 + bit;
                     int pixel_y = y - offset_y + row;
                     display.drawPixel(pixel_x, pixel_y, GxEPD_BLACK);
                 }
