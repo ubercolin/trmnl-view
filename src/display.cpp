@@ -66,18 +66,20 @@ void DisplayManager::updateWeather(const WeatherData &weather)
     weatherDisplay.update(weather);
 }
 
-void DisplayManager::deepSleep()
+void DisplayManager::deepSleep(uint32_t sleepSeconds)
 {
     display.powerOff();
     // Configure timer wake-up
-    esp_sleep_enable_timer_wakeup(WAKEUP_INTERVAL_SECONDS * 1000000ULL);
+    esp_sleep_enable_timer_wakeup(sleepSeconds * 1000000ULL);
     esp_deep_sleep_start();
 }
 
 void DisplayManager::wakeup()
 {
-    // Resume from deep sleep
-    display.init(115200);
+    // Light initialization after deep sleep - just reinit SPI and display controller
+    // Does NOT clear the screen (preserves existing content)
+    SPI.begin(PIN_CLK, PIN_MISO, PIN_MOSI, PIN_CS);
+    display.init(115200, false); // false = don't reset, preserves display content
 }
 
 void DisplayManager::updateBattery(float batteryPercent)

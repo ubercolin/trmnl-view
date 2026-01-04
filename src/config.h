@@ -48,5 +48,6 @@
 #define DEBUG_TIME_SYNC 0
 #define DEBUG_WEATHER_API 0
 #define DEBUG_DISPLAY 0
+#define DEBUG_NO_SLEEP 0 // Set to 1 to disable deep sleep (use delay) for monitoring
 
 #endif // CONFIG_H

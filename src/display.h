@@ -27,7 +27,7 @@ public:
     void updateWeather(const WeatherData &weather);
     void updateBattery(float batteryPercent);
     void partialUpdateClock(int hour, int minute, int second);
-    void deepSleep();
+    void deepSleep(uint32_t sleepSeconds);
     void wakeup();
 
     // Exposed for helper classes
