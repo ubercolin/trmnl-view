@@ -1,6 +1,7 @@
 #include "display_weather.h"
 #include "display.h"
 #include "config.h"
+#include "digit_bitmaps.h"
 #include <time.h>
 
 DisplayWeather::DisplayWeather(DisplayManager *displayManager) : displayManager(displayManager)
@@ -23,7 +24,7 @@ void DisplayWeather::draw(int startX, int boxWidth, const WeatherData &weather)
 {
     int startY = 30;
 
-    drawCurrentTemperature(startX, boxWidth, startY + 20, weather.currentTemp);
+    drawCurrentTemperature(startX, boxWidth, startY, weather.currentTemp);
     drawHourly(startX, boxWidth, startY + 140, weather);
     drawDaily(startX, boxWidth, startY + 250, weather);
 
@@ -54,28 +55,18 @@ void DisplayWeather::drawLastUpdated(const WeatherData &weather, int startX, int
 
 void DisplayWeather::drawCurrentTemperature(int startX, int boxWidth, int startY, float temp)
 {
-    // Large current temperature (3x size, centered)
-    displayManager->getDisplay().setFont(&FreeMonoBold24pt7b);
-    displayManager->getDisplay().setTextColor(GxEPD_BLACK);
-    displayManager->getDisplay().setTextSize(3);
-
+    // Large current temperature using bitmap digits with degree symbol
     char tempStr[20];
-    sprintf(tempStr, "%.0f", temp);
+    sprintf(tempStr, "%.0f°", temp);
 
-    // Center horizontally
-    int centerX = startX + (boxWidth / 2);
-    TextBounds tempBounds = displayManager->drawCenteredText(tempStr, centerX, startY + 80);
+    // Calculate centered position for temperature (variable width depending on digits)
+    // Each digit is 60px wide, estimate total width
+    int numDigits = strlen(tempStr) - 1; // -1 to account for degree symbol being multi-byte UTF-8
+    int totalWidth = numDigits * DIGIT_WIDTH;
+    int centerX = startX + (boxWidth / 2) - (totalWidth / 2);
 
-    // Draw small "o" to upper right as degree symbol
-    // Position it at the top-right of the temperature text
-    displayManager->getDisplay().setTextSize(1);
-    int degreeX = tempBounds.x + tempBounds.w + 15;
-    int degreeY = tempBounds.y + 24;
-    displayManager->getDisplay().setCursor(degreeX, degreeY);
-    displayManager->getDisplay().print("o");
-
-    displayManager->getDisplay().setFont(&FreeSans12pt7b);
-    displayManager->getDisplay().setTextSize(1);
+    // Draw temperature + degree symbol using bitmap digits
+    displayManager->drawNumberBitmap(centerX, startY, tempStr);
 }
 
 void DisplayWeather::drawHourly(int startX, int boxWidth, int startY, const WeatherData &weather)

@@ -1,8 +1,8 @@
 #include "display_clock.h"
 #include "display.h"
-#include <Fonts/FreeMonoBold18pt7b.h>
 #include <Fonts/FreeMonoBold24pt7b.h>
 #include "config.h"
+#include "digit_bitmaps.h"
 
 DisplayClock::DisplayClock(DisplayManager *displayManager) : displayManager(displayManager)
 {
@@ -49,19 +49,8 @@ void DisplayClock::updatePartial(int hour, int minute, int second)
 
 void DisplayClock::drawTime(int hour, int minute)
 {
-    // Very large time display (roughly 90px tall)
-    displayManager->getDisplay().setFont(&FreeMonoBold18pt7b);
-    displayManager->getDisplay().setTextColor(GxEPD_BLACK);
-    displayManager->getDisplay().setTextSize(3);
-
-    char timeStr[10];
-    sprintf(timeStr, "%02d:%02d", hour, minute);
-
-    // Center time horizontally in left panel
-    int centerX = DISPLAY_LEFT_HALF / 2;
-    displayManager->drawCenteredText(timeStr, centerX, 200);
-
-    displayManager->getDisplay().setTextSize(1); // Reset to normal
+    // Use custom bitmap rendering for crisp, pixelation-free display
+    drawTimeBitmap(hour, minute);
 }
 
 void DisplayClock::drawDate(int dayOfWeek, int month, int day, int year)
@@ -92,4 +81,14 @@ String DisplayClock::getFormattedDate(int month, int day, int year)
     char buffer[32];
     snprintf(buffer, sizeof(buffer), "%s %d, %d", months[month % 12], day, year);
     return String(buffer);
+}
+
+void DisplayClock::drawTimeBitmap(int hour, int minute)
+{
+    // Draw time using custom digit bitmaps for crisp rendering
+    char timeStr[6];
+    snprintf(timeStr, sizeof(timeStr), "%02d:%02d", hour, minute);
+
+    // Render centered in left half: x=50, y=80
+    displayManager->drawNumberBitmap(30, 80, timeStr);
 }

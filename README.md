@@ -5,6 +5,8 @@ A battery-efficient ESP32-C3 application that displays the current time on the l
 ## Features
 
 - **Time Display**: Large, easy-to-read time on left half with day and date
+  - Uses custom-generated bitmap digits for crisp, pixelation-free rendering
+  - 60×100 pixel monochrome bitmaps for 0-9 and colon characters
 - **Weather Display**:
   - Current temperature in large font
   - 6-hour hourly forecast with icons and temperatures

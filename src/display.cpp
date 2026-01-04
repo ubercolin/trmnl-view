@@ -1,5 +1,6 @@
 #include "display.h"
 #include "config.h"
+#include "digit_bitmaps.h"
 #include <SPI.h>
 #include <time.h>
 
@@ -142,5 +143,59 @@ void DisplayManager::drawBitmapIcon(int x, int y, const unsigned char *bitmap, i
                 }
             }
         }
+    }
+}
+
+void DisplayManager::drawNumberBitmap(int x, int y, const char *numberString)
+{
+    // Draw a string of numbers using bitmap digits
+    // x, y: top-left position for first digit
+    // numberString: string containing digits, colon, and degree symbol (e.g., "72°")
+
+    int currentX = x;
+
+    // Draw each character
+    for (size_t i = 0; numberString[i] != '\0'; i++)
+    {
+        unsigned char c = (unsigned char)numberString[i];
+
+        // Handle UTF-8 degree symbol (0xC2 0xB0) - skip the first byte
+        if (c == 0xC2 && (unsigned char)numberString[i + 1] == 0xB0)
+        {
+            i++;      // Skip next byte
+            c = 0xB0; // Use the second byte for lookup
+        }
+
+        const unsigned char *bitmap = getDigitBitmap((char)c);
+
+        // Draw bitmap row by row
+        int bytes_per_row = (DIGIT_WIDTH + 7) / 8;
+        for (int row = 0; row < DIGIT_HEIGHT; row++)
+        {
+            for (int col = 0; col < bytes_per_row; col++)
+            {
+                byte b = pgm_read_byte(bitmap + row * bytes_per_row + col);
+
+                // Process each bit in the byte
+                for (int bit = 0; bit < 8; bit++)
+                {
+                    if ((b & (0x80 >> bit)) != 0) // Black pixel
+                    {
+                        int pixel_x = currentX + col * 8 + bit;
+                        int pixel_y = y + row;
+
+                        // Bounds check
+                        if (pixel_x >= 0 && pixel_x < 800 &&
+                            pixel_y >= 0 && pixel_y < 480)
+                        {
+                            display.drawPixel(pixel_x, pixel_y, GxEPD_BLACK);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Move to next digit position
+        currentX += DIGIT_WIDTH;
     }
 }

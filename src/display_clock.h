@@ -19,6 +19,7 @@ private:
     int lastDisplayedMinute = -1;
 
     void drawTime(int hour, int minute);
+    void drawTimeBitmap(int hour, int minute);  // New method for crisp bitmap rendering
 
     // Helper methods to get formatted day and date strings
     String getDayOfWeekName(int dayOfWeekIndex);

@@ -35,6 +35,7 @@ public:
     GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> &getDisplay() { return display; }
     TextBounds drawCenteredText(const char *text, int16_t centerX, int16_t y);
     void drawBitmapIcon(int x, int y, const unsigned char *bitmap, int size);
+    void drawNumberBitmap(int x, int y, const char *numberString); // Draw number using bitmap digits
 
 private:
     GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> display;
