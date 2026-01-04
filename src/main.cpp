@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <cstdlib>
 #include "config.h"
 #include "display.h"
 #include "network.h"
@@ -12,6 +13,7 @@ extern "C"
 // RTC memory survives deep sleep
 RTC_DATA_ATTR time_t lastWeatherUpdate = 0;
 RTC_DATA_ATTR bool isFirstBoot = true;
+RTC_DATA_ATTR int lastDisplayedDay = -1; // Track last displayed day to detect midnight transitions
 
 DisplayManager display;
 NetworkManager network;
@@ -23,6 +25,10 @@ void setup()
 
     Serial.begin(115200);
     delay(100);
+
+    // Set timezone early so time conversions are correct
+    setenv("TZ", TZ_INFO, 1);
+    tzset();
 
     // Check wake reason
     esp_sleep_wakeup_cause_t wakeupReason = esp_sleep_get_wakeup_cause();
@@ -45,19 +51,28 @@ void setup()
         // Wake display from sleep (light init, no full refresh)
         display.wakeup();
 
-        // Always connect WiFi on wake to sync time (keeps RTC accurate)
-        Serial.println("Connecting WiFi to sync time...");
-        if (network.connectWiFi(WIFI_SSID, WIFI_PASSWORD))
+        // Only connect WiFi if weather needs updating (every 30 minutes)
+        // Between weather updates, trust RTC timing for display accuracy
+        if (needsWeatherUpdate)
         {
-            // Sync time while we have WiFi
-            network.syncTime();
-            time(&currentTime);
-            localtime_r(&currentTime, &timeinfo);
-            Serial.printf("Time synced: %02d:%02d:%02d\n", timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+            Serial.println("Weather update needed - connecting WiFi...");
+            if (network.connectWiFi(WIFI_SSID, WIFI_PASSWORD))
+            {
+                // Fetch weather and sync time for next update
+                Serial.println("Fetching weather and syncing time...");
+                network.syncTime();
+                time(&currentTime);
+                localtime_r(&currentTime, &timeinfo);
+                Serial.printf("Time synced: %02d:%02d:%02d\n", timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+            }
+            else
+            {
+                Serial.println("WiFi connection failed - using RTC");
+            }
         }
         else
         {
-            Serial.println("WiFi connection for time sync failed - using RTC (may drift)");
+            Serial.println("No weather update needed - using RTC time (conserving power)");
         }
     }
     else
@@ -135,10 +150,26 @@ void loop()
     time(&currentTime);
     localtime_r(&currentTime, &timeinfo);
 
-    // Always update clock (partial update for efficiency)
+    // Update clock display
     display.partialUpdateClock(timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
     Serial.printf("Clock updated: %02d:%02d:%02d\n", timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
 
+    // Check if day has changed (midnight transition)
+    if (timeinfo.tm_mday != lastDisplayedDay)
+    {
+        Serial.printf("Day changed from %d to %d - updating date display\n", lastDisplayedDay, timeinfo.tm_mday);
+
+        // Update day/date display
+        const char *daysOfWeek[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+        const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+
+        String dayOfWeek = daysOfWeek[timeinfo.tm_wday];
+        char dateStr[32];
+        snprintf(dateStr, sizeof(dateStr), "%s %d, %d", months[timeinfo.tm_mon], timeinfo.tm_mday, timeinfo.tm_year + 1900);
+
+        display.partialUpdateDate(dayOfWeek, String(dateStr));
+        lastDisplayedDay = timeinfo.tm_mday;
+    }
     // Update battery display every minute
     float batteryPercent = network.readDeviceBattery();
     display.updateBattery(batteryPercent);

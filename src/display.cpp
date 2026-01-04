@@ -61,6 +61,18 @@ void DisplayManager::partialUpdateClock(int hour, int minute, int second)
     clockDisplay.updatePartial(hour, minute, second);
 }
 
+void DisplayManager::partialUpdateDate(const String &dayOfWeek, const String &date)
+{
+    // Update only the date area (top of left half)
+    display.setPartialWindow(0, 0, DISPLAY_LEFT_HALF, 80);
+    display.firstPage();
+    do
+    {
+        display.fillRect(0, 0, DISPLAY_LEFT_HALF, 80, GxEPD_WHITE);
+        clockDisplay.drawDate(dayOfWeek, date);
+    } while (display.nextPage());
+}
+
 void DisplayManager::updateWeather(const WeatherData &weather)
 {
     weatherDisplay.update(weather);
