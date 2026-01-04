@@ -48,7 +48,7 @@ void DisplayWeather::drawLastUpdated(const WeatherData &weather, int startX, int
     strftime(timeStr, sizeof(timeStr), "%b %d %H:%M", &timeinfo);
 
     int textWidth = 150;
-    displayManager->getDisplay().setCursor(startX + boxWidth - textWidth, 460);
+    displayManager->getDisplay().setCursor(startX + boxWidth - textWidth + 20, 460);
     displayManager->getDisplay().print(timeStr);
 }
 
@@ -69,7 +69,7 @@ void DisplayWeather::drawCurrentTemperature(int startX, int boxWidth, int startY
     // Draw small "o" to upper right as degree symbol
     // Position it at the top-right of the temperature text
     displayManager->getDisplay().setTextSize(1);
-    int degreeX = tempBounds.x + tempBounds.w + 10;
+    int degreeX = tempBounds.x + tempBounds.w + 15;
     int degreeY = tempBounds.y + 24;
     displayManager->getDisplay().setCursor(degreeX, degreeY);
     displayManager->getDisplay().print("o");
