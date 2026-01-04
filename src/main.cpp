@@ -134,6 +134,9 @@ void setup()
         float batteryPercent = network.readDeviceBattery();
         display.updateBattery(batteryPercent);
 
+        // Initialize day tracking for midnight updates
+        lastDisplayedDay = timeinfo.tm_mday;
+
         isFirstBoot = false;
         needsWeatherUpdate = false; // Already done
     }

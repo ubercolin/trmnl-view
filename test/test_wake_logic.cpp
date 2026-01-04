@@ -1,6 +1,6 @@
 #include <unity.h>
 #include "../src/wake_logic.h"
-#include "../src/wake_logic.cpp"  // Include implementation directly for testing
+#include "../src/wake_logic.cpp" // Include implementation directly for testing
 
 void test_shouldUpdateWeather_immediately_on_first_boot()
 {
@@ -137,7 +137,7 @@ void test_scenario_regular_minute_wake_no_weather_update()
 {
     // Device wakes every minute, but weather only updates every 30 minutes
     time_t firstWake = 1000;
-    time_t secondWake = 1000 + 60;  // 1 minute later
+    time_t secondWake = 1000 + 60; // 1 minute later
     time_t lastWeatherUpdate = 1000;
     int weatherUpdateInterval = 30 * 60;
 
@@ -213,5 +213,3 @@ int main()
 
     return UNITY_END();
 }
-
-
