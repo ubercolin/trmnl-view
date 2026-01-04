@@ -2,6 +2,7 @@
 #include "display.h"
 #include "config.h"
 #include "digit_bitmaps.h"
+#include "weather_bitmaps.h"
 #include <time.h>
 
 DisplayWeather::DisplayWeather(DisplayManager *displayManager) : displayManager(displayManager)
@@ -89,11 +90,11 @@ void DisplayWeather::drawHourly(int startX, int boxWidth, int startY, const Weat
         displayManager->drawCenteredText(timeStr, centerX, startY + 20);
 
         // Draw weather icon
-        drawWeatherIcon(centerX, startY + 40, weather.hourly[i].condition);
+        drawWeatherIcon(centerX, startY + 50, weather.hourly[i].condition);
 
         char tempStr[8];
         sprintf(tempStr, "%.0f°", weather.hourly[i].temp);
-        displayManager->drawCenteredText(tempStr, centerX, startY + 80);
+        displayManager->drawCenteredText(tempStr, centerX, startY + 90);
     }
 }
 
@@ -113,12 +114,12 @@ void DisplayWeather::drawDaily(int startX, int boxWidth, int startY, const Weath
         displayManager->drawCenteredText(weather.daily[i].day.c_str(), centerX, startY + 20);
 
         // Draw weather icon
-        drawWeatherIcon(centerX, startY + 40, weather.daily[i].condition);
+        drawWeatherIcon(centerX, startY + 50, weather.daily[i].condition);
 
         // High / Low temps
         char tempStr[20];
         sprintf(tempStr, "%.0f/%.0f°", weather.daily[i].tempHigh, weather.daily[i].tempLow);
-        displayManager->drawCenteredText(tempStr, centerX, startY + 80);
+        displayManager->drawCenteredText(tempStr, centerX, startY + 90);
     }
 }
 
@@ -129,32 +130,32 @@ void DisplayWeather::drawWeatherIcon(int x, int y, const String &condition)
 
     if (condition.indexOf("Clear") >= 0)
     {
-        bitmap = sun_32x32;
+        bitmap = sun_max_40x40;
     }
     else if (condition.indexOf("Cloudy") >= 0 || condition.indexOf("Overcast") >= 0)
     {
-        bitmap = cloud_32x32;
+        bitmap = cloud_40x40;
     }
     else if (condition.indexOf("Foggy") >= 0)
     {
-        bitmap = haze_32x32;
+        bitmap = cloud_fog_40x40;
     }
     else if (condition.indexOf("Rain") >= 0)
     {
-        bitmap = rain_32x32;
+        bitmap = cloud_rain_40x40;
     }
     else if (condition.indexOf("Snow") >= 0)
     {
-        bitmap = snow_32x32;
+        bitmap = cloud_snow_40x40;
     }
     else if (condition.indexOf("Thunder") >= 0)
     {
-        bitmap = lightning_bolt_32x32;
+        bitmap = cloud_bolt_rain_40x40;
     }
 
     if (bitmap != nullptr)
     {
-        displayManager->drawBitmapIcon(x, y, bitmap, 32);
+        displayManager->drawBitmapIcon(x, y, bitmap, 40);
     }
     else
     {

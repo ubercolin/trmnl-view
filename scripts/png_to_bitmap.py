@@ -9,9 +9,18 @@ def png_to_bitmap_c(png_path, output_size=32):
     """Convert PNG to monochrome bitmap C array"""
     img = Image.open(png_path)
     
-    # Resize to target size if needed
+    # Scale to target size while preserving aspect ratio
     if img.size != (output_size, output_size):
-        img = img.resize((output_size, output_size), Image.Resampling.LANCZOS)
+        # Calculate scale factor to fit within output_size while maintaining aspect ratio
+        scale = min(output_size / img.width, output_size / img.height)
+        new_size = (int(img.width * scale), int(img.height * scale))
+        img = img.resize(new_size, Image.Resampling.LANCZOS)
+        
+        # Create white canvas and paste scaled image centered
+        canvas = Image.new('RGBA', (output_size, output_size), (255, 255, 255, 255))
+        offset = ((output_size - new_size[0]) // 2, (output_size - new_size[1]) // 2)
+        canvas.paste(img, offset, img if img.mode == 'RGBA' else None)
+        img = canvas
     
     # Handle alpha channel - flatten to white background
     if img.mode == 'RGBA' or img.mode == 'LA' or 'transparency' in img.info:
@@ -44,26 +53,71 @@ def png_to_bitmap_c(png_path, output_size=32):
     
     return bytes_list, output_size
 
-def generate_c_code(png_folder, output_size=32):
-    """Generate C header with all bitmap arrays"""
+def generate_c_code(png_folder, target_size=40):
+    """Generate C header with all bitmap arrays, resizing to target size"""
     
-    png_files = sorted(Path(png_folder).glob(f'*-{output_size}.png'))
+    png_files = sorted(Path(png_folder).glob('*.png'))
     
     c_code = f"""#ifndef WEATHER_BITMAPS_H
 #define WEATHER_BITMAPS_H
 
-// Auto-generated from PNG files - {output_size}x{output_size} monochrome bitmaps
-// Each bitmap is {output_size*output_size//8} bytes
+// Auto-generated from PNG files - {target_size}x{target_size} monochrome bitmaps
+// Each bitmap is {target_size*target_size//8} bytes
 
 """
     
     for png_file in png_files:
-        name = png_file.stem.replace('-', '_').replace(f'_{output_size}', '')
-        name = name.replace('icons8_', '')
+        name = png_file.stem.replace('-', '_').replace(' ', '_').replace('.', '_')
+        print(f"Processing {png_file.name} -> {name}_40x40")
         
-        bytes_list, size = png_to_bitmap_c(str(png_file), output_size)
+        # Convert PNG to bitmap, resizing to target size
+        bytes_list = []
+        try:
+            img = Image.open(str(png_file))
+            
+            # Scale to target size while preserving aspect ratio
+            if img.size != (target_size, target_size):
+                # Calculate scale factor to fit within target_size while maintaining aspect ratio
+                scale = min(target_size / img.width, target_size / img.height)
+                new_size = (int(img.width * scale), int(img.height * scale))
+                img = img.resize(new_size, Image.Resampling.LANCZOS)
+                
+                # Create white canvas and paste scaled image centered
+                canvas = Image.new('RGBA', (target_size, target_size), (255, 255, 255, 255))
+                offset = ((target_size - new_size[0]) // 2, (target_size - new_size[1]) // 2)
+                canvas.paste(img, offset, img if img.mode == 'RGBA' else None)
+                img = canvas
+            
+            # Handle alpha channel - flatten to white background
+            if img.mode == 'RGBA' or img.mode == 'LA' or 'transparency' in img.info:
+                background = Image.new('RGB', img.size, (255, 255, 255))
+                if img.mode == 'RGBA':
+                    background.paste(img, mask=img.split()[3])
+                else:
+                    background.paste(img)
+                img = background
+            elif img.mode != 'RGB':
+                img = img.convert('RGB')
+            
+            # Convert to monochrome (1-bit)
+            img = img.convert('1')
+            
+            # Get pixel data
+            pixels = list(img.getdata())
+            
+            # Convert to bytes (pack bits)
+            for i in range(0, len(pixels), 8):
+                byte = 0
+                for j in range(8):
+                    if i + j < len(pixels):
+                        if pixels[i + j] == 0:  # Black pixel
+                            byte |= (1 << (7 - j))
+                bytes_list.append(byte)
+        except Exception as e:
+            print(f"Error processing {png_file}: {e}")
+            continue
         
-        c_code += f"const unsigned char {name}_{output_size}x{output_size}[] PROGMEM = {{\n"
+        c_code += f"const unsigned char {name}_{target_size}x{target_size}[] PROGMEM = {{\n"
         
         # Format bytes nicely
         for i, byte in enumerate(bytes_list):
@@ -81,9 +135,9 @@ def generate_c_code(png_folder, output_size=32):
     
     return c_code
 
-# Generate for 32x32
+# Generate for 40x40
 output_dir = "/Users/colin/Projects/trmnl-view/src"
-output_size = 32
+output_size = 40
 
 code = generate_c_code("/Users/colin/Projects/trmnl-view/weather-bitmaps", output_size)
 
