@@ -7,6 +7,7 @@
 #include <Fonts/FreeSans12pt7b.h>
 #include <Fonts/FreeSans9pt7b.h>
 #include "types.h"
+#include "weather_bitmaps.h"
 
 class DisplayManager
 {
@@ -30,6 +31,7 @@ private:
     void drawTemperatureBox(int x, int y, int w, int h, float temp, const String &label);
     void drawForecastRow(int y, const WeatherData &weather, bool isHourly);
     void drawWeatherIcon(int x, int y, const String &condition);
+    void drawBitmapIcon(int x, int y, const unsigned char *bitmap, int size);
 
     int lastDisplayedHour = -1;
     int lastDisplayedMinute = -1;

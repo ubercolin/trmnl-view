@@ -146,8 +146,8 @@ void DisplayManager::drawWeatherSection(const WeatherData &weather)
         display.setCursor(colX, startY + 200);
         display.print(timeStr);
 
-        display.setCursor(colX, startY + 230);
-        display.print(weather.hourly[i].condition.c_str());
+        // Draw weather icon instead of text
+        drawWeatherIcon(colX + 20, startY + 220, weather.hourly[i].condition);
 
         char tempStr[8];
         sprintf(tempStr, "%.0f°", weather.hourly[i].temp);
@@ -165,9 +165,8 @@ void DisplayManager::drawWeatherSection(const WeatherData &weather)
         display.setCursor(boxX, startY + 310);
         display.print(weather.daily[i].day.c_str());
 
-        // Condition
-        display.setCursor(boxX, startY + 340);
-        display.print(weather.daily[i].condition.c_str());
+        // Draw weather icon instead of condition text
+        drawWeatherIcon(boxX + 40, startY + 330, weather.daily[i].condition);
 
         // High / Low temps
         char tempStr[20];
@@ -249,4 +248,71 @@ void DisplayManager::updateBattery(float batteryPercent)
         display.setCursor(10, DISPLAY_HEIGHT - 20);
         display.println(battStr);
     } while (display.nextPage());
+}
+
+void DisplayManager::drawBitmapIcon(int x, int y, const unsigned char *bitmap, int size)
+{
+    // Draw a monochrome bitmap icon centered at (x, y)
+    // bitmap: pointer to PROGMEM bitmap array
+    // size: 32 for 32x32 bitmap
+
+    int bytes_per_row = size / 8;
+    int offset_x = size / 2; // Center horizontally
+    int offset_y = size / 2; // Center vertically
+
+    for (int row = 0; row < size; row++)
+    {
+        for (int col = 0; col < bytes_per_row; col++)
+        {
+            byte b = pgm_read_byte(bitmap + row * bytes_per_row + col);
+
+            for (int bit = 0; bit < 8; bit++)
+            {
+                if ((b & (0x80 >> bit)) != 0) // Black pixel
+                {
+                    int pixel_x = x - offset_x + col * 8 + bit;
+                    int pixel_y = y - offset_y + row;
+                    display.drawPixel(pixel_x, pixel_y, GxEPD_BLACK);
+                }
+            }
+        }
+    }
+}
+
+void DisplayManager::drawWeatherIcon(int x, int y, const String &condition)
+{
+    // Draw weather icons using bitmaps (32x32)
+
+    if (condition.indexOf("Clear") >= 0)
+    {
+        drawBitmapIcon(x, y, sun_32x32, 32);
+    }
+    else if (condition.indexOf("Cloudy") >= 0 || condition.indexOf("Overcast") >= 0)
+    {
+        drawBitmapIcon(x, y, cloud_32x32, 32);
+    }
+    else if (condition.indexOf("Foggy") >= 0)
+    {
+        drawBitmapIcon(x, y, haze_32x32, 32);
+    }
+    else if (condition.indexOf("Rain") >= 0)
+    {
+        drawBitmapIcon(x, y, rain_32x32, 32);
+    }
+    else if (condition.indexOf("Snow") >= 0)
+    {
+        drawBitmapIcon(x, y, snow_32x32, 32);
+    }
+    else if (condition.indexOf("Thunder") >= 0)
+    {
+        drawBitmapIcon(x, y, lightning_bolt_32x32, 32);
+    }
+    else
+    {
+        // Unknown: question mark in a box
+        display.drawRect(x - 8, y - 8, 16, 16, GxEPD_BLACK);
+        display.setFont(&FreeSans9pt7b);
+        display.setCursor(x - 2, y + 5);
+        display.print("?");
+    }
 }

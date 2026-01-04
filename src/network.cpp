@@ -296,7 +296,7 @@ String NetworkManager::getWeatherCondition(int wmoCode)
     if (wmoCode >= 71 && wmoCode <= 87)
         return "Snow";
     if (wmoCode >= 80 && wmoCode <= 82)
-        return "Showers";
+        return "Rain";
     if (wmoCode == 85 || wmoCode == 86)
         return "Snow";
     if (wmoCode >= 90 && wmoCode <= 99)
