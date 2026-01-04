@@ -35,6 +35,19 @@ void DisplayManager::showError(const String &errorMessage)
     display.display(true);
 }
 
+void DisplayManager::drawCenteredText(const char *text, int16_t centerX, int16_t y)
+{
+    int16_t x1, y1;
+    uint16_t w, h;
+    display.getTextBounds(text, 0, 0, &x1, &y1, &w, &h);
+
+    // Calculate x position to center the text
+    int16_t x = centerX - (w / 2);
+
+    display.setCursor(x, y);
+    display.print(text);
+}
+
 void DisplayManager::updateClock(int hour, int minute, int second, const String &dayOfWeek, const String &date)
 {
     display.setPartialWindow(0, 0, DISPLAY_LEFT_HALF, DISPLAY_HEIGHT);

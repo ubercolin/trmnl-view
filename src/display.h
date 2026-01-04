@@ -27,6 +27,7 @@ public:
     // Exposed for helper classes
     GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> &getDisplay() { return display; }
     void drawWeatherIcon(int x, int y, const String &condition);
+    void drawCenteredText(const char *text, int16_t centerX, int16_t y);
 
 private:
     GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> display;

@@ -10,18 +10,19 @@ void DisplayClock::draw(int x, int hour, int minute, int second, const String &d
     // Very large time display (roughly 90px tall)
     displayManager->getDisplay().setFont(&FreeMonoBold24pt7b);
     displayManager->getDisplay().setTextColor(GxEPD_BLACK);
+    displayManager->getDisplay().setTextSize(2);
 
     char timeStr[10];
     sprintf(timeStr, "%02d:%02d", hour, minute);
-    displayManager->getDisplay().setCursor(x + 30, 200); // Centered vertically
-    displayManager->getDisplay().setTextSize(2);         // Scale up 2x for large display (~90px)
-    displayManager->getDisplay().println(timeStr);
+
+    // Center time horizontally (left half width is 375px, center at 187.5)
+    int centerX = x + 187;
+    displayManager->drawCenteredText(timeStr, centerX, 200);
+
     displayManager->getDisplay().setTextSize(1); // Reset to normal
 
     // Day of week and date below time
-    displayManager->getDisplay().setCursor(x + 30, 250);
-    displayManager->getDisplay().println(dayOfWeek);
+    displayManager->drawCenteredText(dayOfWeek.c_str(), centerX, 250);
 
-    displayManager->getDisplay().setCursor(x + 30, 300);
-    displayManager->getDisplay().println(date);
+    displayManager->drawCenteredText(date.c_str(), centerX, 300);
 }

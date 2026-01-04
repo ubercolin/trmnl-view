@@ -41,21 +41,22 @@ void DisplayWeather::drawLastUpdated(const WeatherData &weather, int startX)
 
 void DisplayWeather::drawCurrentTemperature(int startX, int startY, float temp)
 {
-    // Large current temperature (3x size, centered, no F unit)
+    // Large current temperature (3x size, centered)
     displayManager->getDisplay().setFont(&FreeMonoBold24pt7b);
     displayManager->getDisplay().setTextColor(GxEPD_BLACK);
     displayManager->getDisplay().setTextSize(3);
 
     char tempStr[20];
     sprintf(tempStr, "%.0f", temp);
-    // Center horizontally in right panel (roughly 200px from start for center)
-    displayManager->getDisplay().setCursor(startX + 120, startY + 80);
-    displayManager->getDisplay().println(tempStr);
+
+    // Center horizontally in right panel
+    int centerX = startX + 200;
+    displayManager->drawCenteredText(tempStr, centerX, startY + 80);
 
     // Draw small "o" to upper right as degree symbol
-    // displayManager->getDisplay().setFont(&FreeMonoBold18pt7b);
+    displayManager->getDisplay().setFont(&FreeSans9pt7b);
     displayManager->getDisplay().setTextSize(1);
-    displayManager->getDisplay().setCursor(startX + 280, startY);
+    displayManager->getDisplay().setCursor(centerX + 60, startY + 30);
     displayManager->getDisplay().print("o");
 
     displayManager->getDisplay().setFont(&FreeSans12pt7b);
@@ -65,6 +66,9 @@ void DisplayWeather::drawCurrentTemperature(int startX, int startY, float temp)
 void DisplayWeather::drawHourly(int startX, int startY, const WeatherData &weather)
 {
     // Hourly forecast (next 5 hours)
+    displayManager->getDisplay().setFont(&FreeSans12pt7b);
+    displayManager->getDisplay().setTextSize(1);
+
     int colWidth = 80;
     for (int i = 0; i < 5; i++)
     {
@@ -73,39 +77,41 @@ void DisplayWeather::drawHourly(int startX, int startY, const WeatherData &weath
         int displayHour = (hour % 12 == 0) ? 12 : (hour % 12);
         const char *ampm = (hour < 12) ? "a" : "p";
         int colX = startX + (i * colWidth);
+        int centerX = colX + (colWidth / 2);
+
         sprintf(timeStr, "%d%s", displayHour, ampm);
-        displayManager->getDisplay().setCursor(colX + 25, startY + 20);
-        displayManager->getDisplay().print(timeStr);
+        displayManager->drawCenteredText(timeStr, centerX, startY + 20);
 
         // Draw weather icon
-        displayManager->drawWeatherIcon(colX + (colWidth / 2), startY + 40, weather.hourly[i].condition);
+        displayManager->drawWeatherIcon(centerX, startY + 40, weather.hourly[i].condition);
 
         char tempStr[8];
         sprintf(tempStr, "%.0f°", weather.hourly[i].temp);
-        displayManager->getDisplay().setCursor(colX + 25, startY + 80);
-        displayManager->getDisplay().print(tempStr);
+        displayManager->drawCenteredText(tempStr, centerX, startY + 80);
     }
 }
 
 void DisplayWeather::drawDaily(int startX, int startY, const WeatherData &weather)
 {
     // Daily forecast (next 4 days) - 4 evenly spaced columns
+    displayManager->getDisplay().setFont(&FreeSans12pt7b);
+    displayManager->getDisplay().setTextSize(1);
+
     int dayColWidth = 100; // 400px / 4 columns
     for (int i = 0; i < 4; i++)
     {
         int boxX = startX + (i * dayColWidth);
+        int centerX = boxX + (dayColWidth / 2);
 
         // Day of week
-        displayManager->getDisplay().setCursor(boxX + 35, startY + 20);
-        displayManager->getDisplay().print(weather.daily[i].day.c_str());
+        displayManager->drawCenteredText(weather.daily[i].day.c_str(), centerX, startY + 20);
 
         // Draw weather icon
-        displayManager->drawWeatherIcon(boxX + (dayColWidth / 2), startY + 40, weather.daily[i].condition);
+        displayManager->drawWeatherIcon(centerX, startY + 40, weather.daily[i].condition);
 
         // High / Low temps
         char tempStr[20];
         sprintf(tempStr, "%.0f/%.0f°", weather.daily[i].tempHigh, weather.daily[i].tempLow);
-        displayManager->getDisplay().setCursor(boxX + 20, startY + 80);
-        displayManager->getDisplay().print(tempStr);
+        displayManager->drawCenteredText(tempStr, centerX, startY + 80);
     }
 }
