@@ -86,7 +86,21 @@ void performUpdates()
         {
             Serial.println("Weather fetch failed");
         }
-        lastWeatherUpdate = currentTime;
+        
+        // Set lastWeatherUpdate to nearest :00 or :30 boundary
+        // This aligns all future updates to :00 and :30 marks, naturally re-rendering hourly forecast
+        struct tm updateTime;
+        localtime_r(&currentTime, &updateTime);
+        if (updateTime.tm_min < 30)
+        {
+            updateTime.tm_min = 0;
+        }
+        else
+        {
+            updateTime.tm_min = 30;
+        }
+        updateTime.tm_sec = 0;
+        lastWeatherUpdate = mktime(&updateTime);
     }
 }
 
@@ -139,7 +153,7 @@ void setup()
         }
 
         // Initialize RTC tracking for next cycles
-        lastWeatherUpdate = 0; // Force weather update in loop
+        lastWeatherUpdate = 0; // Force weather update in loop on first boot
         lastDisplayedDay = -1; // Force date update in loop
         // Keep isFirstBoot = true so performUpdates knows to do full initial display
     }
