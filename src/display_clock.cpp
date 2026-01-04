@@ -8,7 +8,7 @@ DisplayClock::DisplayClock(DisplayManager *displayManager) : displayManager(disp
 {
 }
 
-void DisplayClock::updateFull(int hour, int minute, int second, const String &dayOfWeek, const String &date)
+void DisplayClock::updateFull(int hour, int minute, int second, int dayOfWeek, int month, int day, int year)
 {
     auto &display = displayManager->getDisplay();
     display.setPartialWindow(0, 0, DISPLAY_LEFT_HALF, DISPLAY_HEIGHT);
@@ -17,7 +17,7 @@ void DisplayClock::updateFull(int hour, int minute, int second, const String &da
     {
         display.fillRect(0, 0, DISPLAY_LEFT_HALF, DISPLAY_HEIGHT, GxEPD_WHITE);
         drawTime(hour, minute);
-        drawDate(dayOfWeek, date);
+        drawDate(dayOfWeek, month, day, year);
     } while (display.nextPage());
 
     lastDisplayedHour = hour;
@@ -64,14 +64,32 @@ void DisplayClock::drawTime(int hour, int minute)
     displayManager->getDisplay().setTextSize(1); // Reset to normal
 }
 
-void DisplayClock::drawDate(const String &dayOfWeek, const String &date)
+void DisplayClock::drawDate(int dayOfWeek, int month, int day, int year)
 {
+    String dayOfWeekStr = getDayOfWeekName(dayOfWeek);
+    String dateStr = getFormattedDate(month, day, year);
+
     displayManager->getDisplay().setFont(&FreeMonoBold24pt7b);
     displayManager->getDisplay().setTextColor(GxEPD_BLACK);
     displayManager->getDisplay().setTextSize(1);
 
     // Center day of week and date below time
     int centerX = DISPLAY_LEFT_HALF / 2;
-    displayManager->drawCenteredText(dayOfWeek.c_str(), centerX, 250);
-    displayManager->drawCenteredText(date.c_str(), centerX, 300);
+    displayManager->drawCenteredText(dayOfWeekStr.c_str(), centerX, 250);
+    displayManager->drawCenteredText(dateStr.c_str(), centerX, 300);
+}
+
+String DisplayClock::getDayOfWeekName(int dayOfWeekIndex)
+{
+    static const char *daysOfWeek[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+    return String(daysOfWeek[dayOfWeekIndex % 7]);
+}
+
+String DisplayClock::getFormattedDate(int month, int day, int year)
+{
+    static const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+
+    char buffer[32];
+    snprintf(buffer, sizeof(buffer), "%s %d, %d", months[month % 12], day, year);
+    return String(buffer);
 }

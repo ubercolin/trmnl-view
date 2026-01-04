@@ -111,14 +111,8 @@ void setup()
         }
 
         // Full display initialization
-        const char *daysOfWeek[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
-        const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-
-        String dayOfWeek = daysOfWeek[timeinfo.tm_wday];
-        char dateStr[32];
-        snprintf(dateStr, sizeof(dateStr), "%s %d, %d", months[timeinfo.tm_mon], timeinfo.tm_mday, timeinfo.tm_year + 1900);
-
-        display.updateClock(timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec, dayOfWeek, String(dateStr));
+        display.updateClock(timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec,
+                            timeinfo.tm_wday, timeinfo.tm_mon, timeinfo.tm_mday, timeinfo.tm_year + 1900);
 
         // Fetch initial weather
         Serial.println("Fetching initial weather...");
@@ -163,14 +157,7 @@ void loop()
         Serial.printf("Day changed from %d to %d - updating date display\n", lastDisplayedDay, timeinfo.tm_mday);
 
         // Update day/date display
-        const char *daysOfWeek[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
-        const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-
-        String dayOfWeek = daysOfWeek[timeinfo.tm_wday];
-        char dateStr[32];
-        snprintf(dateStr, sizeof(dateStr), "%s %d, %d", months[timeinfo.tm_mon], timeinfo.tm_mday, timeinfo.tm_year + 1900);
-
-        display.partialUpdateDate(dayOfWeek, String(dateStr));
+        display.partialUpdateDate(timeinfo.tm_wday, timeinfo.tm_mon, timeinfo.tm_mday, timeinfo.tm_year + 1900);
         lastDisplayedDay = timeinfo.tm_mday;
     }
     // Update battery display every minute

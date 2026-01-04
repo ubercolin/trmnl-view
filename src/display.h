@@ -23,11 +23,11 @@ public:
     DisplayManager();
     void init();
     void showError(const String &errorMessage);
-    void updateClock(int hour, int minute, int second, const String &dayOfWeek, const String &date);
+    void updateClock(int hour, int minute, int second, int dayOfWeek, int month, int day, int year);
     void updateWeather(const WeatherData &weather);
     void updateBattery(float batteryPercent);
     void partialUpdateClock(int hour, int minute, int second);
-    void partialUpdateDate(const String &dayOfWeek, const String &date);
+    void partialUpdateDate(int dayOfWeek, int month, int day, int year);
     void deepSleep(uint32_t sleepSeconds);
     void wakeup();
 

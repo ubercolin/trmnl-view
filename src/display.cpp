@@ -51,9 +51,9 @@ TextBounds DisplayManager::drawCenteredText(const char *text, int16_t centerX, i
     return {x, (int16_t)(y - h), (int16_t)w, (int16_t)h};
 }
 
-void DisplayManager::updateClock(int hour, int minute, int second, const String &dayOfWeek, const String &date)
+void DisplayManager::updateClock(int hour, int minute, int second, int dayOfWeek, int month, int day, int year)
 {
-    clockDisplay.updateFull(hour, minute, second, dayOfWeek, date);
+    clockDisplay.updateFull(hour, minute, second, dayOfWeek, month, day, year);
 }
 
 void DisplayManager::partialUpdateClock(int hour, int minute, int second)
@@ -61,7 +61,7 @@ void DisplayManager::partialUpdateClock(int hour, int minute, int second)
     clockDisplay.updatePartial(hour, minute, second);
 }
 
-void DisplayManager::partialUpdateDate(const String &dayOfWeek, const String &date)
+void DisplayManager::partialUpdateDate(int dayOfWeek, int month, int day, int year)
 {
     // Update only the date area (top of left half)
     display.setPartialWindow(0, 0, DISPLAY_LEFT_HALF, 80);
@@ -69,7 +69,7 @@ void DisplayManager::partialUpdateDate(const String &dayOfWeek, const String &da
     do
     {
         display.fillRect(0, 0, DISPLAY_LEFT_HALF, 80, GxEPD_WHITE);
-        clockDisplay.drawDate(dayOfWeek, date);
+        clockDisplay.drawDate(dayOfWeek, month, day, year);
     } while (display.nextPage());
 }
 
