@@ -9,10 +9,16 @@ class DisplayClock
 {
 public:
     DisplayClock(DisplayManager *displayManager);
-    void draw(int x, int boxWidth, int hour, int minute, int second, const String &dayOfWeek, const String &date);
+    void updateFull(int hour, int minute, int second, const String &dayOfWeek, const String &date);
+    void updatePartial(int hour, int minute, int second);
 
 private:
     DisplayManager *displayManager;
+    int lastDisplayedHour = -1;
+    int lastDisplayedMinute = -1;
+
+    void drawTime(int hour, int minute);
+    void drawDate(const String &dayOfWeek, const String &date);
 };
 
 #endif // DISPLAY_CLOCK_H

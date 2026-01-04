@@ -32,23 +32,14 @@ public:
 
     // Exposed for helper classes
     GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> &getDisplay() { return display; }
-    void drawWeatherIcon(int x, int y, const String &condition);
     TextBounds drawCenteredText(const char *text, int16_t centerX, int16_t y);
+    void drawBitmapIcon(int x, int y, const unsigned char *bitmap, int size);
 
 private:
     GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> display;
     float currentBattery = 0;
     DisplayClock clockDisplay;
     DisplayWeather weatherDisplay;
-
-    void drawClockSection(int hour, int minute, int second, const String &dayOfWeek, const String &date);
-    void drawWeatherSection(const WeatherData &weather);
-    void drawTemperatureBox(int x, int y, int w, int h, float temp, const String &label);
-    void drawForecastRow(int y, const WeatherData &weather, bool isHourly);
-    void drawBitmapIcon(int x, int y, const unsigned char *bitmap, int size);
-
-    int lastDisplayedHour = -1;
-    int lastDisplayedMinute = -1;
 };
 
 #endif // DISPLAY_H

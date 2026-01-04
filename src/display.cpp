@@ -53,68 +53,17 @@ TextBounds DisplayManager::drawCenteredText(const char *text, int16_t centerX, i
 
 void DisplayManager::updateClock(int hour, int minute, int second, const String &dayOfWeek, const String &date)
 {
-    display.setPartialWindow(0, 0, DISPLAY_LEFT_HALF, DISPLAY_HEIGHT);
-    display.firstPage();
-    do
-    {
-        display.fillRect(0, 0, DISPLAY_LEFT_HALF, DISPLAY_HEIGHT, GxEPD_WHITE);
-        drawClockSection(hour, minute, second, dayOfWeek, date);
-    } while (display.nextPage());
-
-    lastDisplayedHour = hour;
-    lastDisplayedMinute = minute;
+    clockDisplay.updateFull(hour, minute, second, dayOfWeek, date);
 }
 
 void DisplayManager::partialUpdateClock(int hour, int minute, int second)
 {
-    // Only update if time has changed
-    if (hour == lastDisplayedHour && minute == lastDisplayedMinute)
-    {
-        return;
-    }
-
-    // Update only the time area (partial refresh for efficiency)
-    // Window from y=80 to y=230 covers just the time, not day/date below
-    display.setPartialWindow(0, 80, DISPLAY_LEFT_HALF, 140);
-    display.firstPage();
-    do
-    {
-        display.fillRect(0, 80, DISPLAY_LEFT_HALF, 140, GxEPD_WHITE);
-
-        display.setFont(&FreeMonoBold24pt7b);
-        display.setTextColor(GxEPD_BLACK);
-
-        char timeStr[10];
-        sprintf(timeStr, "%02d:%02d", hour, minute);
-        display.setCursor(30, 200);
-        display.setTextSize(2);
-        display.println(timeStr);
-        display.setTextSize(1);
-    } while (display.nextPage());
-
-    lastDisplayedHour = hour;
-    lastDisplayedMinute = minute;
+    clockDisplay.updatePartial(hour, minute, second);
 }
 
 void DisplayManager::updateWeather(const WeatherData &weather)
 {
-    display.setPartialWindow(DISPLAY_LEFT_HALF, 0, DISPLAY_RIGHT_HALF, DISPLAY_HEIGHT);
-    display.firstPage();
-    do
-    {
-        display.fillRect(DISPLAY_LEFT_HALF, 0, DISPLAY_RIGHT_HALF, DISPLAY_HEIGHT, GxEPD_WHITE);
-        drawWeatherSection(weather);
-    } while (display.nextPage());
-}
-
-void DisplayManager::drawClockSection(int hour, int minute, int second, const String &dayOfWeek, const String &date)
-{
-    clockDisplay.draw(0, DISPLAY_LEFT_HALF, hour, minute, second, dayOfWeek, date);
-}
-
-void DisplayManager::drawWeatherSection(const WeatherData &weather)
-{
-    weatherDisplay.draw(DISPLAY_LEFT_HALF, DISPLAY_RIGHT_HALF, weather);
+    weatherDisplay.update(weather);
 }
 
 void DisplayManager::deepSleep()
@@ -179,49 +128,5 @@ void DisplayManager::drawBitmapIcon(int x, int y, const unsigned char *bitmap, i
                 }
             }
         }
-    }
-}
-
-void DisplayManager::drawWeatherIcon(int x, int y, const String &condition)
-{
-    // Determine which bitmap to use based on condition
-    const unsigned char *bitmap = nullptr;
-
-    if (condition.indexOf("Clear") >= 0)
-    {
-        bitmap = sun_32x32;
-    }
-    else if (condition.indexOf("Cloudy") >= 0 || condition.indexOf("Overcast") >= 0)
-    {
-        bitmap = cloud_32x32;
-    }
-    else if (condition.indexOf("Foggy") >= 0)
-    {
-        bitmap = haze_32x32;
-    }
-    else if (condition.indexOf("Rain") >= 0)
-    {
-        bitmap = rain_32x32;
-    }
-    else if (condition.indexOf("Snow") >= 0)
-    {
-        bitmap = snow_32x32;
-    }
-    else if (condition.indexOf("Thunder") >= 0)
-    {
-        bitmap = lightning_bolt_32x32;
-    }
-
-    if (bitmap != nullptr)
-    {
-        drawBitmapIcon(x, y, bitmap, 32);
-    }
-    else
-    {
-        // Unknown: question mark in a box
-        display.drawRect(x - 8, y - 8, 16, 16, GxEPD_BLACK);
-        display.setFont(&FreeSans9pt7b);
-        display.setCursor(x - 2, y + 5);
-        display.print("?");
     }
 }

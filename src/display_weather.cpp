@@ -1,9 +1,22 @@
 #include "display_weather.h"
 #include "display.h"
+#include "config.h"
 #include <time.h>
 
 DisplayWeather::DisplayWeather(DisplayManager *displayManager) : displayManager(displayManager)
 {
+}
+
+void DisplayWeather::update(const WeatherData &weather)
+{
+    auto &display = displayManager->getDisplay();
+    display.setPartialWindow(DISPLAY_LEFT_HALF, 0, DISPLAY_RIGHT_HALF, DISPLAY_HEIGHT);
+    display.firstPage();
+    do
+    {
+        display.fillRect(DISPLAY_LEFT_HALF, 0, DISPLAY_RIGHT_HALF, DISPLAY_HEIGHT, GxEPD_WHITE);
+        draw(DISPLAY_LEFT_HALF, 400, weather);
+    } while (display.nextPage());
 }
 
 void DisplayWeather::draw(int startX, int boxWidth, const WeatherData &weather)
@@ -85,7 +98,7 @@ void DisplayWeather::drawHourly(int startX, int boxWidth, int startY, const Weat
         displayManager->drawCenteredText(timeStr, centerX, startY + 20);
 
         // Draw weather icon
-        displayManager->drawWeatherIcon(centerX, startY + 40, weather.hourly[i].condition);
+        drawWeatherIcon(centerX, startY + 40, weather.hourly[i].condition);
 
         char tempStr[8];
         sprintf(tempStr, "%.0f°", weather.hourly[i].temp);
@@ -109,11 +122,56 @@ void DisplayWeather::drawDaily(int startX, int boxWidth, int startY, const Weath
         displayManager->drawCenteredText(weather.daily[i].day.c_str(), centerX, startY + 20);
 
         // Draw weather icon
-        displayManager->drawWeatherIcon(centerX, startY + 40, weather.daily[i].condition);
+        drawWeatherIcon(centerX, startY + 40, weather.daily[i].condition);
 
         // High / Low temps
         char tempStr[20];
         sprintf(tempStr, "%.0f/%.0f°", weather.daily[i].tempHigh, weather.daily[i].tempLow);
         displayManager->drawCenteredText(tempStr, centerX, startY + 80);
+    }
+}
+
+void DisplayWeather::drawWeatherIcon(int x, int y, const String &condition)
+{
+    // Determine which bitmap to use based on condition
+    const unsigned char *bitmap = nullptr;
+
+    if (condition.indexOf("Clear") >= 0)
+    {
+        bitmap = sun_32x32;
+    }
+    else if (condition.indexOf("Cloudy") >= 0 || condition.indexOf("Overcast") >= 0)
+    {
+        bitmap = cloud_32x32;
+    }
+    else if (condition.indexOf("Foggy") >= 0)
+    {
+        bitmap = haze_32x32;
+    }
+    else if (condition.indexOf("Rain") >= 0)
+    {
+        bitmap = rain_32x32;
+    }
+    else if (condition.indexOf("Snow") >= 0)
+    {
+        bitmap = snow_32x32;
+    }
+    else if (condition.indexOf("Thunder") >= 0)
+    {
+        bitmap = lightning_bolt_32x32;
+    }
+
+    if (bitmap != nullptr)
+    {
+        displayManager->drawBitmapIcon(x, y, bitmap, 32);
+    }
+    else
+    {
+        // Unknown: question mark in a box
+        auto &display = displayManager->getDisplay();
+        display.drawRect(x - 8, y - 8, 16, 16, GxEPD_BLACK);
+        display.setFont(&FreeSans9pt7b);
+        display.setCursor(x - 2, y + 5);
+        display.print("?");
     }
 }
