@@ -35,7 +35,7 @@ void DisplayManager::showError(const String &errorMessage)
     display.display(true);
 }
 
-void DisplayManager::drawCenteredText(const char *text, int16_t centerX, int16_t y)
+TextBounds DisplayManager::drawCenteredText(const char *text, int16_t centerX, int16_t y)
 {
     int16_t x1, y1;
     uint16_t w, h;
@@ -46,6 +46,9 @@ void DisplayManager::drawCenteredText(const char *text, int16_t centerX, int16_t
 
     display.setCursor(x, y);
     display.print(text);
+
+    // Return the bounding box of the drawn text
+    return {x, (int16_t)(y - h), (int16_t)w, (int16_t)h};
 }
 
 void DisplayManager::updateClock(int hour, int minute, int second, const String &dayOfWeek, const String &date)

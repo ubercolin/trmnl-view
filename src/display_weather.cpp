@@ -51,12 +51,14 @@ void DisplayWeather::drawCurrentTemperature(int startX, int boxWidth, int startY
 
     // Center horizontally
     int centerX = startX + (boxWidth / 2);
-    displayManager->drawCenteredText(tempStr, centerX, startY + 80);
+    TextBounds tempBounds = displayManager->drawCenteredText(tempStr, centerX, startY + 80);
 
     // Draw small "o" to upper right as degree symbol
-    displayManager->getDisplay().setFont(&FreeSans9pt7b);
+    // Position it at the top-right of the temperature text
     displayManager->getDisplay().setTextSize(1);
-    displayManager->getDisplay().setCursor(centerX + 60, startY + 30);
+    int degreeX = tempBounds.x + tempBounds.w + 10;
+    int degreeY = tempBounds.y + 24;
+    displayManager->getDisplay().setCursor(degreeX, degreeY);
     displayManager->getDisplay().print("o");
 
     displayManager->getDisplay().setFont(&FreeSans12pt7b);
