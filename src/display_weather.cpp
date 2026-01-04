@@ -10,7 +10,7 @@ void DisplayWeather::draw(int startX, const WeatherData &weather)
 {
     int startY = 30;
 
-    drawCurrentTemperature(startX, startY, weather.currentTemp);
+    drawCurrentTemperature(startX, startY + 20, weather.currentTemp);
     drawHourly(startX, startY + 140, weather);
     drawDaily(startX, startY + 250, weather);
 
@@ -47,10 +47,16 @@ void DisplayWeather::drawCurrentTemperature(int startX, int startY, float temp)
     displayManager->getDisplay().setTextSize(3);
 
     char tempStr[20];
-    sprintf(tempStr, "%.0f°", temp);
+    sprintf(tempStr, "%.0f", temp);
     // Center horizontally in right panel (roughly 200px from start for center)
-    displayManager->getDisplay().setCursor(startX + 100, startY + 80);
+    displayManager->getDisplay().setCursor(startX + 120, startY + 80);
     displayManager->getDisplay().println(tempStr);
+
+    // Draw small "o" to upper right as degree symbol
+    // displayManager->getDisplay().setFont(&FreeMonoBold18pt7b);
+    displayManager->getDisplay().setTextSize(1);
+    displayManager->getDisplay().setCursor(startX + 280, startY);
+    displayManager->getDisplay().print("o");
 
     displayManager->getDisplay().setFont(&FreeSans12pt7b);
     displayManager->getDisplay().setTextSize(1);
