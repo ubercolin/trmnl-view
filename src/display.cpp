@@ -3,7 +3,7 @@
 #include <SPI.h>
 #include <time.h>
 
-DisplayManager::DisplayManager() : display(GxEPD2_750_T7(PIN_CS, PIN_DC, PIN_RST, PIN_BUSY))
+DisplayManager::DisplayManager() : display(GxEPD2_750_T7(PIN_CS, PIN_DC, PIN_RST, PIN_BUSY)), clockDisplay(this), weatherDisplay(this)
 {
 }
 
@@ -93,105 +93,13 @@ void DisplayManager::updateWeather(const WeatherData &weather)
 
 void DisplayManager::drawClockSection(int hour, int minute, int second, const String &dayOfWeek, const String &date)
 {
-    // Very large time display (roughly 90px tall)
-    display.setFont(&FreeMonoBold24pt7b);
-    display.setTextColor(GxEPD_BLACK);
-
-    char timeStr[10];
-    sprintf(timeStr, "%02d:%02d", hour, minute);
-    display.setCursor(30, 200); // Centered vertically
-    display.setTextSize(2);     // Scale up 2x for large display (~90px)
-    display.println(timeStr);
-    display.setTextSize(1); // Reset to normal
-
-    // Day of week and date below time
-    // display.setFont(&FreeSans24pt7b);
-    display.setCursor(30, 250);
-    display.println(dayOfWeek);
-
-    display.setCursor(30, 300);
-    display.println(date);
+    clockDisplay.draw(0, hour, minute, second, dayOfWeek, date);
 }
 
 void DisplayManager::drawWeatherSection(const WeatherData &weather)
 {
     int startX = DISPLAY_LEFT_HALF;
-    int startY = 30;
-
-    // Large current temperature (2x size, centered, no F unit)
-    display.setFont(&FreeMonoBold24pt7b);
-    display.setTextColor(GxEPD_BLACK);
-    display.setTextSize(2);
-
-    char tempStr[20];
-    sprintf(tempStr, "%.0f°", weather.currentTemp);
-    // Center horizontally in right panel (roughly 200px from start for center)
-    display.setCursor(startX + 60, startY + 80);
-    display.println(tempStr);
-
-    display.setFont(&FreeSans12pt7b);
-    display.setTextSize(1);
-
-    // Hourly forecast (next 5 hours) - time row
-    display.setCursor(startX, startY + 140);
-    int colWidth = 80;
-    for (int i = 0; i < 5; i++)
-    {
-        char timeStr[8];
-        int hour = weather.hourly[i].hour;
-        int displayHour = (hour % 12 == 0) ? 12 : (hour % 12);
-        const char *ampm = (hour < 12) ? "a" : "p";
-        int colX = startX + (i * colWidth);
-        sprintf(timeStr, "%d%s", displayHour, ampm);
-        display.setCursor(colX + 25, startY + 200);
-        display.print(timeStr);
-
-        // Draw weather icon instead of text
-        drawWeatherIcon(colX + (colWidth / 2), startY + 220, weather.hourly[i].condition);
-
-        char tempStr[8];
-        sprintf(tempStr, "%.0f°", weather.hourly[i].temp);
-        display.setCursor(colX + 25, startY + 260);
-        display.print(tempStr);
-    }
-
-    // Daily forecast (next 4 days) - 4 evenly spaced columns
-    int dayColWidth = 100; // 400px / 4 columns
-    for (int i = 0; i < 4; i++)
-    {
-        int boxX = startX + (i * dayColWidth);
-
-        // Day of week
-        display.setCursor(boxX + 35, startY + 310);
-        display.print(weather.daily[i].day.c_str());
-
-        // Draw weather icon instead of condition text
-        drawWeatherIcon(boxX + (dayColWidth / 2), startY + 330, weather.daily[i].condition);
-
-        // High / Low temps
-        char tempStr[20];
-        sprintf(tempStr, "%.0f/%.0f°", weather.daily[i].tempHigh, weather.daily[i].tempLow);
-        display.setCursor(boxX + 20, startY + 370);
-        display.print(tempStr);
-    }
-
-    // Last updated timestamp at bottom right
-    if (weather.lastUpdated > 0)
-    {
-        time_t updateTime = weather.lastUpdated;
-        struct tm timeinfo;
-        localtime_r(&updateTime, &timeinfo);
-
-        display.setFont(&FreeSans9pt7b);
-        display.setTextSize(1);
-
-        char timeStr[20];
-        strftime(timeStr, sizeof(timeStr), "%b %d %H:%M", &timeinfo);
-
-        int textWidth = 150;
-        display.setCursor(DISPLAY_LEFT_HALF + DISPLAY_RIGHT_HALF - textWidth, DISPLAY_HEIGHT - 20);
-        display.print(timeStr);
-    }
+    weatherDisplay.draw(startX, weather);
 }
 
 void DisplayManager::drawForecastRow(int y, const WeatherData &weather, bool isHourly)

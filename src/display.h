@@ -8,6 +8,8 @@
 #include <Fonts/FreeSans9pt7b.h>
 #include "types.h"
 #include "weather_bitmaps.h"
+#include "display_clock.h"
+#include "display_weather.h"
 
 class DisplayManager
 {
@@ -22,15 +24,20 @@ public:
     void deepSleep();
     void wakeup();
 
+    // Exposed for helper classes
+    GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> &getDisplay() { return display; }
+    void drawWeatherIcon(int x, int y, const String &condition);
+
 private:
     GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> display;
     float currentBattery = 0;
+    DisplayClock clockDisplay;
+    DisplayWeather weatherDisplay;
 
     void drawClockSection(int hour, int minute, int second, const String &dayOfWeek, const String &date);
     void drawWeatherSection(const WeatherData &weather);
     void drawTemperatureBox(int x, int y, int w, int h, float temp, const String &label);
     void drawForecastRow(int y, const WeatherData &weather, bool isHourly);
-    void drawWeatherIcon(int x, int y, const String &condition);
     void drawBitmapIcon(int x, int y, const unsigned char *bitmap, int size);
 
     int lastDisplayedHour = -1;
