@@ -9,7 +9,7 @@ class DisplayClock
 {
 public:
     DisplayClock(DisplayManager *displayManager);
-    void draw(int x, int hour, int minute, int second, const String &dayOfWeek, const String &date);
+    void draw(int x, int boxWidth, int hour, int minute, int second, const String &dayOfWeek, const String &date);
 
 private:
     DisplayManager *displayManager;

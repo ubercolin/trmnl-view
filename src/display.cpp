@@ -106,33 +106,12 @@ void DisplayManager::updateWeather(const WeatherData &weather)
 
 void DisplayManager::drawClockSection(int hour, int minute, int second, const String &dayOfWeek, const String &date)
 {
-    clockDisplay.draw(0, hour, minute, second, dayOfWeek, date);
+    clockDisplay.draw(0, DISPLAY_LEFT_HALF, hour, minute, second, dayOfWeek, date);
 }
 
 void DisplayManager::drawWeatherSection(const WeatherData &weather)
 {
-    int startX = DISPLAY_LEFT_HALF;
-    weatherDisplay.draw(startX, weather);
-}
-
-void DisplayManager::drawForecastRow(int y, const WeatherData &weather, bool isHourly)
-{
-    // Forecast display simplified - not used anymore
-}
-
-void DisplayManager::drawTemperatureBox(int x, int y, int w, int h, float temp, const String &label)
-{
-    // Draw a box with temperature and label
-    display.drawRect(x, y, w, h, GxEPD_BLACK);
-
-    display.setFont(&FreeSans12pt7b);
-    char tempStr[10];
-    sprintf(tempStr, "%.0f°", temp);
-    display.setCursor(x + 5, y + 20);
-    display.println(tempStr);
-
-    display.setCursor(x + 5, y + h - 5);
-    display.println(label);
+    weatherDisplay.draw(DISPLAY_LEFT_HALF, DISPLAY_RIGHT_HALF, weather);
 }
 
 void DisplayManager::deepSleep()

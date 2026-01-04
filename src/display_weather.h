@@ -10,16 +10,16 @@ class DisplayWeather
 {
 public:
     DisplayWeather(DisplayManager *displayManager);
-    void draw(int startX, const WeatherData &weather);
+    void draw(int startX, int boxWidth, const WeatherData &weather);
 
-    void drawLastUpdated(const WeatherData &weather, int startX);
+    void drawLastUpdated(const WeatherData &weather, int startX, int boxWidth);
 
 private:
     DisplayManager *displayManager;
 
-    void drawCurrentTemperature(int startX, int startY, float temp);
-    void drawHourly(int startX, int startY, const WeatherData &weather);
-    void drawDaily(int startX, int startY, const WeatherData &weather);
+    void drawCurrentTemperature(int startX, int boxWidth, int startY, float temp);
+    void drawHourly(int startX, int boxWidth, int startY, const WeatherData &weather);
+    void drawDaily(int startX, int boxWidth, int startY, const WeatherData &weather);
 };
 
 #endif // DISPLAY_WEATHER_H
