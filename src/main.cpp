@@ -3,6 +3,7 @@
 #include "config.h"
 #include "display.h"
 #include "network.h"
+#include "wake_logic.h"
 
 // Disable watchdog timers to prevent early resets during init
 extern "C"
@@ -17,6 +18,77 @@ RTC_DATA_ATTR int lastDisplayedDay = -1; // Track last displayed day to detect m
 
 DisplayManager display;
 NetworkManager network;
+
+// Common update logic used by both first boot and regular wakes
+void performUpdates()
+{
+    // Get current time
+    time_t currentTime;
+    struct tm timeinfo;
+    time(&currentTime);
+    localtime_r(&currentTime, &timeinfo);
+
+    // On fresh boot, do full display update; otherwise partial updates
+    if (isFirstBoot)
+    {
+        Serial.println("Fresh boot - doing initial full display...");
+        display.updateClock(timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec,
+                            timeinfo.tm_wday, timeinfo.tm_mon, timeinfo.tm_mday, timeinfo.tm_year + 1900);
+        lastDisplayedDay = timeinfo.tm_mday;
+        isFirstBoot = false;
+    }
+    else
+    {
+        // Regular partial updates on wake from sleep
+        display.partialUpdateClock(timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+        Serial.printf("Clock updated: %02d:%02d:%02d\n", timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+
+        // Update date display if day changed
+        if (WakeLogic::shouldUpdateDate(timeinfo.tm_mday, lastDisplayedDay))
+        {
+            Serial.printf("Day changed from %d to %d - updating date display\n", lastDisplayedDay, timeinfo.tm_mday);
+            display.partialUpdateDate(timeinfo.tm_wday, timeinfo.tm_mon, timeinfo.tm_mday, timeinfo.tm_year + 1900);
+            lastDisplayedDay = timeinfo.tm_mday;
+        }
+    }
+
+    // Battery and weather updates happen every cycle regardless of boot state
+    float batteryPercent = network.readDeviceBattery();
+    display.updateBattery(batteryPercent);
+
+    // Update weather if needed (every 30 minutes)
+    if (WakeLogic::shouldUpdateWeather(currentTime, lastWeatherUpdate, WEATHER_UPDATE_INTERVAL))
+    {
+        Serial.println("Weather update needed - connecting WiFi...");
+
+        // Connect WiFi and sync time for accurate weather fetch and future cycles
+        if (!network.isConnected())
+        {
+            network.connectWiFi(WIFI_SSID, WIFI_PASSWORD);
+        }
+
+        if (network.isConnected())
+        {
+            Serial.println("Syncing time for accurate weather fetch...");
+            network.syncTime();
+            // Update currentTime after sync for weather timestamp
+            time(&currentTime);
+        }
+
+        Serial.println("Fetching weather...");
+        WeatherData weather = {};
+        if (network.fetchWeather(weather))
+        {
+            Serial.println("Weather updated!");
+            display.updateWeather(weather);
+        }
+        else
+        {
+            Serial.println("Weather fetch failed");
+        }
+        lastWeatherUpdate = currentTime;
+    }
+}
 
 void setup()
 {
@@ -34,58 +106,21 @@ void setup()
     esp_sleep_wakeup_cause_t wakeupReason = esp_sleep_get_wakeup_cause();
     bool wokeFromSleep = (wakeupReason == ESP_SLEEP_WAKEUP_TIMER);
 
-    // Get current time from RTC (preserved during deep sleep)
-    time_t currentTime;
-    struct tm timeinfo;
-    time(&currentTime);
-    localtime_r(&currentTime, &timeinfo);
-
-    // Check if weather needs updating
-    bool needsWeatherUpdate = (currentTime - lastWeatherUpdate >= WEATHER_UPDATE_INTERVAL);
-
     if (wokeFromSleep)
     {
         Serial.println("=== WOKE FROM DEEP SLEEP ===");
-        Serial.printf("Current RTC time: %02d:%02d:%02d\n", timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
-
-        // Wake display from sleep (light init, no full refresh)
         display.wakeup();
-
-        // Only connect WiFi if weather needs updating (every 30 minutes)
-        // Between weather updates, trust RTC timing for display accuracy
-        if (needsWeatherUpdate)
-        {
-            Serial.println("Weather update needed - connecting WiFi...");
-            if (network.connectWiFi(WIFI_SSID, WIFI_PASSWORD))
-            {
-                // Fetch weather and sync time for next update
-                Serial.println("Fetching weather and syncing time...");
-                network.syncTime();
-                time(&currentTime);
-                localtime_r(&currentTime, &timeinfo);
-                Serial.printf("Time synced: %02d:%02d:%02d\n", timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
-            }
-            else
-            {
-                Serial.println("WiFi connection failed - using RTC");
-            }
-        }
-        else
-        {
-            Serial.println("No weather update needed - using RTC time (conserving power)");
-        }
     }
     else
     {
-        // Fresh boot - full initialization
+        // Fresh boot - hardware initialization only
         Serial.println("=== FRESH BOOT ===");
-        isFirstBoot = true;
 
         Serial.println("Initializing display...");
         display.init();
         Serial.println("Display initialized!");
 
-        // Connect to WiFi
+        // WiFi and time sync on fresh boot
         Serial.println("Connecting to WiFi...");
         if (!network.connectWiFi(WIFI_SSID, WIFI_PASSWORD))
         {
@@ -97,42 +132,16 @@ void setup()
         Serial.print("IP Address: ");
         Serial.println(network.getIPAddress());
 
-        // Sync time
         Serial.println("Syncing time...");
-        if (network.syncTime())
-        {
-            Serial.println("Time synced successfully!");
-            time(&currentTime);
-            localtime_r(&currentTime, &timeinfo);
-        }
-        else
+        if (!network.syncTime())
         {
             Serial.println("Time sync failed!");
         }
 
-        // Full display initialization
-        display.updateClock(timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec,
-                            timeinfo.tm_wday, timeinfo.tm_mon, timeinfo.tm_mday, timeinfo.tm_year + 1900);
-
-        // Fetch initial weather
-        Serial.println("Fetching initial weather...");
-        WeatherData weather = {};
-        if (network.fetchWeather(weather))
-        {
-            Serial.println("Weather fetched successfully!");
-            display.updateWeather(weather);
-            lastWeatherUpdate = currentTime;
-        }
-
-        // Update battery display
-        float batteryPercent = network.readDeviceBattery();
-        display.updateBattery(batteryPercent);
-
-        // Initialize day tracking for midnight updates
-        lastDisplayedDay = timeinfo.tm_mday;
-
-        isFirstBoot = false;
-        needsWeatherUpdate = false; // Already done
+        // Initialize RTC tracking for next cycles
+        lastWeatherUpdate = 0; // Force weather update in loop
+        lastDisplayedDay = -1; // Force date update in loop
+        // Keep isFirstBoot = true so performUpdates knows to do full initial display
     }
 
     Serial.println("Setup complete!");
@@ -141,52 +150,13 @@ void setup()
 
 void loop()
 {
-    // Get current time
+    performUpdates();
+
+    // Get current time for sleep calculation
     time_t currentTime;
     struct tm timeinfo;
     time(&currentTime);
     localtime_r(&currentTime, &timeinfo);
-
-    // Update clock display
-    display.partialUpdateClock(timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
-    Serial.printf("Clock updated: %02d:%02d:%02d\n", timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
-
-    // Check if day has changed (midnight transition)
-    if (timeinfo.tm_mday != lastDisplayedDay)
-    {
-        Serial.printf("Day changed from %d to %d - updating date display\n", lastDisplayedDay, timeinfo.tm_mday);
-
-        // Update day/date display
-        display.partialUpdateDate(timeinfo.tm_wday, timeinfo.tm_mon, timeinfo.tm_mday, timeinfo.tm_year + 1900);
-        lastDisplayedDay = timeinfo.tm_mday;
-    }
-    // Update battery display every minute
-    float batteryPercent = network.readDeviceBattery();
-    display.updateBattery(batteryPercent);
-
-    // Check if weather needs updating (every 30 minutes)
-    if (currentTime - lastWeatherUpdate >= WEATHER_UPDATE_INTERVAL)
-    {
-        // Connect WiFi if not already connected
-        if (!network.isConnected())
-        {
-            Serial.println("Connecting WiFi for weather update...");
-            network.connectWiFi(WIFI_SSID, WIFI_PASSWORD);
-        }
-
-        Serial.println("Fetching weather...");
-        WeatherData weather = {};
-        if (network.fetchWeather(weather))
-        {
-            Serial.println("Weather updated!");
-            display.updateWeather(weather);
-        }
-        else
-        {
-            Serial.println("Weather fetch failed");
-        }
-        lastWeatherUpdate = currentTime;
-    }
 
     // Calculate sleep duration to wake at the top of the next minute
     int secondsInMinute = timeinfo.tm_sec;
