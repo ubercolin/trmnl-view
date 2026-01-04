@@ -2,9 +2,7 @@
 #define DISPLAY_H
 
 #include <GxEPD2_BW.h>
-#include <Fonts/FreeMonoBold24pt7b.h>
-#include <Fonts/FreeMonoBold12pt7b.h>
-#include <Fonts/FreeSans12pt7b.h>
+#include <Fonts/FreeSansBold12pt7b.h>
 #include <Fonts/FreeSans9pt7b.h>
 #include "types.h"
 #include "weather_bitmaps.h"

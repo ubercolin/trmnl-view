@@ -72,7 +72,7 @@ void DisplayWeather::drawCurrentTemperature(int startX, int boxWidth, int startY
 void DisplayWeather::drawHourly(int startX, int boxWidth, int startY, const WeatherData &weather)
 {
     // Hourly forecast (next 5 hours)
-    displayManager->getDisplay().setFont(&FreeSans12pt7b);
+    displayManager->getDisplay().setFont(&FreeSansBold12pt7b);
     displayManager->getDisplay().setTextSize(1);
 
     int colWidth = boxWidth / 5; // 5 columns across the box width
@@ -100,7 +100,7 @@ void DisplayWeather::drawHourly(int startX, int boxWidth, int startY, const Weat
 void DisplayWeather::drawDaily(int startX, int boxWidth, int startY, const WeatherData &weather)
 {
     // Daily forecast (next 4 days) - 4 evenly spaced columns
-    displayManager->getDisplay().setFont(&FreeSans12pt7b);
+    displayManager->getDisplay().setFont(&FreeSansBold12pt7b);
     displayManager->getDisplay().setTextSize(1);
 
     int dayColWidth = boxWidth / 4; // 4 columns across the box width

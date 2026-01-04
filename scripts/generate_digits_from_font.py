@@ -30,10 +30,13 @@ import sys
 from PIL import Image, ImageDraw, ImageFont
 
 def find_helvetica_bold_font():
-    """Find Courier Bold font on the system."""
+    """Find SF Mono Heavy font on the system."""
     # macOS and other systems
     fonts_to_try = [
-        "/System/Library/Fonts/Courier.ttc",
+        "/System/Library/Fonts/SF-Mono-Heavy.otf",
+        "/System/Library/Fonts/SF-Mono.ttc",  # Index 5 for Heavy
+        "/Library/Fonts/SF-Mono-Heavy.otf",
+        "/System/Library/Fonts/Courier.ttc",  # Fallback
         "/Library/Fonts/Courier New Bold.ttf",
         "/Library/Fonts/Courier Bold.ttf",
         "/usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf",
@@ -46,7 +49,7 @@ def find_helvetica_bold_font():
             return font_path
     
     # Fallback to default
-    print("Warning: Could not find Courier Bold, using default PIL font")
+    print("Warning: Could not find SF Mono Heavy, using default PIL font")
     return None
 
 def generate_digit_bitmap(digit_char, font_path=None, font_size=120, width=70, height=110):
@@ -60,14 +63,18 @@ def generate_digit_bitmap(digit_char, font_path=None, font_size=120, width=70, h
     # Load font
     if font_path:
         try:
-            # Try to load bold variant (index 1) from .ttc files, or regular if .ttf
+            # Try to load bold/heavy variant (index 1 or 5) from .ttc files, or regular if .ttf
             if font_path.endswith('.ttc'):
-                # For .ttc (TrueType Collection), try index 1 for bold variant
-                try:
-                    font = ImageFont.truetype(font_path, font_size, index=1)
-                    print(f"  Loaded bold variant from {font_path}")
-                except:
-                    # Fallback to index 0 if bold variant not available
+                # For .ttc (TrueType Collection), try various indices for Heavy/Bold variants
+                font = None
+                for index in [5, 1, 0]:  # Try Heavy (5), Bold (1), Regular (0)
+                    try:
+                        font = ImageFont.truetype(font_path, font_size, index=index)
+                        print(f"  Loaded font variant (index={index}) from {font_path}")
+                        break
+                    except:
+                        continue
+                if not font:
                     font = ImageFont.truetype(font_path, font_size, index=0)
             else:
                 font = ImageFont.truetype(font_path, font_size)

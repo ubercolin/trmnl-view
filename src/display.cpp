@@ -16,17 +16,13 @@ void DisplayManager::init()
     display.init(115200);
     display.setRotation(0);
     display.fillScreen(GxEPD_WHITE);
-    // display.setFont(&FreeMonoBold24pt7b);
-    // display.setTextColor(GxEPD_BLACK);
-    // display.setCursor(DISPLAY_WIDTH / 2 - 100, DISPLAY_HEIGHT / 2 - 20);
-    // display.println("Initializing...");
     display.display(true);
 }
 
 void DisplayManager::showError(const String &errorMessage)
 {
     display.fillScreen(GxEPD_WHITE);
-    display.setFont(&FreeMonoBold12pt7b);
+    display.setFont(&FreeSansBold12pt7b);
     display.setTextColor(GxEPD_BLACK);
 
     display.setCursor(50, 200);
