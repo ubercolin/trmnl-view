@@ -281,31 +281,37 @@ void DisplayManager::drawBitmapIcon(int x, int y, const unsigned char *bitmap, i
 
 void DisplayManager::drawWeatherIcon(int x, int y, const String &condition)
 {
-    // Draw weather icons using bitmaps (32x32)
+    // Determine which bitmap to use based on condition
+    const unsigned char *bitmap = nullptr;
 
     if (condition.indexOf("Clear") >= 0)
     {
-        drawBitmapIcon(x, y, sun_32x32, 32);
+        bitmap = sun_32x32;
     }
     else if (condition.indexOf("Cloudy") >= 0 || condition.indexOf("Overcast") >= 0)
     {
-        drawBitmapIcon(x, y, cloud_32x32, 32);
+        bitmap = cloud_32x32;
     }
     else if (condition.indexOf("Foggy") >= 0)
     {
-        drawBitmapIcon(x, y, haze_32x32, 32);
+        bitmap = haze_32x32;
     }
     else if (condition.indexOf("Rain") >= 0)
     {
-        drawBitmapIcon(x, y, rain_32x32, 32);
+        bitmap = rain_32x32;
     }
     else if (condition.indexOf("Snow") >= 0)
     {
-        drawBitmapIcon(x, y, snow_32x32, 32);
+        bitmap = snow_32x32;
     }
     else if (condition.indexOf("Thunder") >= 0)
     {
-        drawBitmapIcon(x, y, lightning_bolt_32x32, 32);
+        bitmap = lightning_bolt_32x32;
+    }
+
+    if (bitmap != nullptr)
+    {
+        drawBitmapIcon(x, y, bitmap, 32);
     }
     else
     {
