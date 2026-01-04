@@ -143,12 +143,15 @@ void DisplayManager::drawWeatherSection(const WeatherData &weather)
         const char *ampm = (hour < 12) ? "a" : "p";
         int colX = startX + (i * colWidth);
         sprintf(timeStr, "%d%s", displayHour, ampm);
-        display.setCursor(colX, startY + 140);
+        display.setCursor(colX, startY + 200);
         display.print(timeStr);
+
+        display.setCursor(colX, startY + 230);
+        display.print(weather.hourly[i].condition.c_str());
 
         char tempStr[8];
         sprintf(tempStr, "%.0f°", weather.hourly[i].temp);
-        display.setCursor(colX, startY + 170);
+        display.setCursor(colX, startY + 260);
         display.print(tempStr);
     }
 
@@ -159,17 +162,17 @@ void DisplayManager::drawWeatherSection(const WeatherData &weather)
         int boxX = startX + (i * dayColWidth);
 
         // Day of week
-        display.setCursor(boxX, startY + 210);
+        display.setCursor(boxX, startY + 310);
         display.print(weather.daily[i].day.c_str());
 
         // Condition
-        display.setCursor(boxX, startY + 240);
+        display.setCursor(boxX, startY + 340);
         display.print(weather.daily[i].condition.c_str());
 
         // High / Low temps
         char tempStr[20];
         sprintf(tempStr, "%.0f/%.0f°", weather.daily[i].tempHigh, weather.daily[i].tempLow);
-        display.setCursor(boxX, startY + 270);
+        display.setCursor(boxX, startY + 370);
         display.print(tempStr);
     }
 
