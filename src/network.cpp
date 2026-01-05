@@ -74,9 +74,11 @@ bool NetworkManager::syncTime()
     while (attempts < 10)
     {
         time(&now);
-        localtime_r(&now, &timeinfo);
-        if (timeinfo.tm_year > (2020 - 1900))
+        // Reject if time is still at epoch or before 2020 (reasonable minimum for this device)
+        // 1577836800 = Jan 1, 2020 00:00:00 UTC
+        if (now > 1577836800)
         {
+            localtime_r(&now, &timeinfo);
             Serial.print("Time synced: ");
             Serial.println(asctime(&timeinfo));
             return true;

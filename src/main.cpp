@@ -47,6 +47,8 @@ void performUpdates()
         if (WakeLogic::shouldUpdateDate(timeinfo.tm_mday, lastDisplayedDay))
         {
             Serial.printf("Day changed from %d to %d - updating date display\n", lastDisplayedDay, timeinfo.tm_mday);
+            Serial.printf("  Time details: year=%d, month=%d, day=%d, wday=%d\n",
+                          timeinfo.tm_year + 1900, timeinfo.tm_mon, timeinfo.tm_mday, timeinfo.tm_wday);
             display.partialUpdateDate(timeinfo.tm_wday, timeinfo.tm_mon, timeinfo.tm_mday, timeinfo.tm_year + 1900);
             lastDisplayedDay = timeinfo.tm_mday;
         }
@@ -70,9 +72,16 @@ void performUpdates()
         if (network.isConnected())
         {
             Serial.println("Syncing time for accurate weather fetch...");
-            network.syncTime();
-            // Update currentTime after sync for weather timestamp
-            time(&currentTime);
+            if (network.syncTime())
+            {
+                // Re-read current time after successful sync
+                time(&currentTime);
+                localtime_r(&currentTime, &timeinfo);
+            }
+            else
+            {
+                Serial.println("Time sync failed, continuing with current time");
+            }
         }
 
         Serial.println("Fetching weather...");
@@ -81,26 +90,27 @@ void performUpdates()
         {
             Serial.println("Weather updated!");
             display.updateWeather(weather);
+
+            // Only update the timestamp if fetch succeeded
+            // Set lastWeatherUpdate to nearest :00 or :30 boundary
+            // This aligns all future updates to :00 and :30 marks, naturally re-rendering hourly forecast
+            struct tm updateTime;
+            localtime_r(&currentTime, &updateTime);
+            if (updateTime.tm_min < 30)
+            {
+                updateTime.tm_min = 0;
+            }
+            else
+            {
+                updateTime.tm_min = 30;
+            }
+            updateTime.tm_sec = 0;
+            lastWeatherUpdate = mktime(&updateTime);
         }
         else
         {
-            Serial.println("Weather fetch failed");
+            Serial.println("Weather fetch failed - will retry on next cycle");
         }
-        
-        // Set lastWeatherUpdate to nearest :00 or :30 boundary
-        // This aligns all future updates to :00 and :30 marks, naturally re-rendering hourly forecast
-        struct tm updateTime;
-        localtime_r(&currentTime, &updateTime);
-        if (updateTime.tm_min < 30)
-        {
-            updateTime.tm_min = 0;
-        }
-        else
-        {
-            updateTime.tm_min = 30;
-        }
-        updateTime.tm_sec = 0;
-        lastWeatherUpdate = mktime(&updateTime);
     }
 }
 

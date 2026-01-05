@@ -1,4 +1,5 @@
 #include "wake_logic.h"
+#include <Arduino.h>
 
 bool WakeLogic::shouldUpdateWeather(time_t currentTime, time_t lastWeatherUpdate, int weatherUpdateInterval)
 {
@@ -7,7 +8,13 @@ bool WakeLogic::shouldUpdateWeather(time_t currentTime, time_t lastWeatherUpdate
     {
         return true;
     }
-    return (currentTime - lastWeatherUpdate >= weatherUpdateInterval);
+
+    bool should_update = (currentTime - lastWeatherUpdate >= weatherUpdateInterval);
+    Serial.printf("Weather check: current=%ld, lastUpdate=%ld, diff=%ld, interval=%d, result=%s\n",
+                  currentTime, lastWeatherUpdate, currentTime - lastWeatherUpdate, weatherUpdateInterval,
+                  should_update ? "YES" : "NO");
+    Serial.flush();
+    return should_update;
 }
 
 bool WakeLogic::shouldUpdateDate(int currentDay, int lastDisplayedDay)
